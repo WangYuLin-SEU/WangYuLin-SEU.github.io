@@ -1,10 +1,10 @@
 name: Deploy WAPR website
 
-# Deploy the prepared static site from the website branch.
-# 从 website 分支发布已准备的静态网站。
+# Deploy the prepared static site from the main branch.
+# 从 main 分支发布已准备的静态网站。
 on:
   push:
-    branches: [website]
+    branches: [main]
     paths:
       - 'pages/**'
       - '.github/workflows/pages.yml'
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.repository == 'WangYuLin-SEU/WAPR'
+    if: github.repository == 'WangYuLin-SEU/WAPR-site'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
