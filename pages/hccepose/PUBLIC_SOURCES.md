@@ -9,3 +9,5 @@ The paths below refer to files in this static website.
 - **WAPR documentation:** the interface description follows [revision 4e591be318a828c91980c58ef8bbdc34e6599881](https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/wapr/estimator.py).
 
 See [LICENSE](LICENSE) for the project license. Third-party components retain their own licenses and author notices.
+
+- **Optional score filtering and NMS:** the postprocessing tutorial calls the fixed public [WAPR suppression module](https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/wapr/suppression.py). The runnable script is in the [HCCEPose source](https://github.com/WangYuLin-SEU/HCCEPose/blob/main/examples/inference/postprocess_wapr.py).

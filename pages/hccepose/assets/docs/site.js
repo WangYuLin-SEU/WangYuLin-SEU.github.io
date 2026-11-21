@@ -149,7 +149,7 @@
     activeResult = -1;
     try {
       if (!searchIndex) {
-        searchIndex = fetch('search-index.json?v=view-feedback-cache-20261117', {cache: 'no-cache'}).then(function (response) {
+        searchIndex = fetch('search-index.json?v=public-postprocess-20261121', {cache: 'no-cache'}).then(function (response) {
           if (!response.ok) throw new Error('Search index: HTTP ' + response.status);
           return response.json();
         });
@@ -232,6 +232,13 @@
       var reference = link.getAttribute('href');
       if (reference.startsWith('#')) return;
       var target = new URL(reference, location.href);
+      // The shared project directory stays reachable from standalone local previews.
+      // 独立本地预览也能返回共用项目目录，并保留当前语言。
+      if (link.hasAttribute('data-project-directory')) {
+        target.searchParams.set('lang', nextLanguage);
+        link.setAttribute('href', target.href);
+        return;
+      }
       if (target.origin === location.origin && target.pathname.endsWith('.html')) {
         target.searchParams.set('lang', nextLanguage);
         // Keep relative addresses usable under any hosting prefix.
