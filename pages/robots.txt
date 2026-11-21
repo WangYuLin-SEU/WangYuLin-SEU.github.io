@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://wangyulin-seu.github.io/sitemap.xml
+Sitemap: https://wangyulin-seu.github.io/wapr/sitemap.xml
