@@ -92,7 +92,7 @@
 <h2 id="zh-hccepose">HccePose</h2>
 <p><code>Tester.predict</code> 按物体编号返回结果。每组的 <code>pnp_success[i]</code> 表示第 <code>i</code> 个检测实例的 HccePose PnP 是否求解成功。读取 RGB 位姿前先检查这个布尔值。可用对应点不足时，求解器可能返回单位矩阵，此时 <code>pnp_success[i]</code> 为 <code>False</code>。启用可选精修时，这个标志仍只记录初始 PnP 状态。</p>
 <p><code>Rts[i]</code> 为物体到相机的 4×4 变换，平移单位为毫米。<code>pred_mask[i]</code> 位于裁剪图像坐标系。还原到原图时，使用已有辅助函数完成裁剪逆变换、去除补边和分辨率恢复：</p>
-<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">Refinement.wapr_public</span><span class="w"> </span><span class="kn">import</span> <span class="n">restore_full_frame_masks</span>
+<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">Refinement.refinement_group</span><span class="w"> </span><span class="kn">import</span> <span class="n">restore_full_frame_masks</span>
 
 <span class="n">mask_i</span> <span class="o">=</span> <span class="n">restore_full_frame_masks</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">obj_id</span><span class="p">],</span> <span class="n">image_bgr</span><span class="o">.</span><span class="n">shape</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
 </code></pre></div>
@@ -101,6 +101,10 @@
 <p><code>pose_4x4_m</code> 表示物体到相机的位姿，平移单位为米。接入示例的 <code>score_6d</code> 由 WAPR 根据本次输入计算，并非 YOLO 检测置信度，不保证位于概率区间。</p>
 <p>输入与输出保持相同实例顺序；示例保存的 <code>instance_index</code> 是物体组内索引，不代表检测器全局框编号或真实物体标签。</p>
 <p>坐标和颜色顺序变换均在接入边界显式进行，原始 <code>Tester</code> 的毫米约定不变。</p>
+<p><code>Tester.predict(..., use_wapr=True)</code> 中，<code>Rts</code> 只包含筛选后保留的毫米制位姿；<code>wapr_scores</code> 为对应的 WBPS，<code>wapr_instance_indices</code> 将每行映射到该物体原始检测索引。掩码、变换、裁剪图、logits 及 YOLO <code>conf</code> 使用相同索引同步筛选。仅 <code>wapr_mode='estimate'</code> 跳过 PnP、没有 <code>pnp_success</code>；<code>hybrid</code> 和 <code>refine</code> 中筛选后的 <code>pnp_success</code> 及 <code>Rts_hccepose</code> 仍描述初始 PnP。某物体检测全部未通过筛选或被跳过时，各数组为空，<code>Rts</code> 形状为 <code>0×4×4</code>。</p>
+<p>每个物体另有未筛选的 <code>wapr_raw_records</code> 和 <code>wapr_decisions</code>。顶层 <code>wapr_postprocess</code> 报告保存所有物体的原始米制位姿、评分、筛选状态和保留记录。报告中的 <code>kept_input_indices</code> 指向整份原始列表，与物体局部的 <code>wapr_instance_indices</code> 不同。原始列表按请求物体顺序及各物体原检测顺序排列。</p>
+<p><code>wapr_mode</code> 标明所选模式。<code>wapr_pose_sources</code> 与保留行对齐：<code>wapr</code> 表示 WAPR 全局候选，<code>pnp_refined</code> 表示精修后的 PnP 初值，<code>pnp</code> 表示两项精修评分组中保留的原始初值。原始记录通过 <code>hypothesis_source</code> 保存来源；有初值的评分组还提供 <code>hypothesis_index</code> 与 <code>hypothesis_count</code>。PnP 模式另记录 <code>pnp_success</code>，有效初值通过 <code>pnp_pose_4x4_m</code> 保存精修前米制位姿。</p>
+<p><code>refine</code> 不估计 PnP 失败或无效的实例，在报告的 <code>skipped_instances</code> 中单独列出物体编号、原实例索引和 <code>pnp_failed</code> 或 <code>invalid_pnp_pose</code>；这些项不伪造分数，也没有原始位姿记录。每个物体的 <code>wapr_skipped_instances</code> 为其子集。<code>hybrid</code> 即使初始 <code>pnp_success</code> 为假，仍可能保留 WAPR 估计；该标志不表示最终 WAPR 是否成功。</p>
 <h2 id="zh-每个物体的完整字段">每个物体的完整字段</h2>
 <p>以下形状使用默认 <code>crop_size=256</code>；<code>N</code> 为当前物体的实例数。张量可能位于 GPU，转为 NumPy 前先 <code>detach().cpu()</code>。</p>
 <div aria-label="横向滚动表格" class="table-scroll" role="region" tabindex="0"><table>
@@ -165,7 +169,22 @@
 <tr>
 <td><code>pnp_success</code></td>
 <td>NumPy bool <code>N</code></td>
-<td>初始 HccePose PnP 的成功状态。</td>
+<td>初始 HccePose PnP 状态；仅 WAPR <code>estimate</code> 模式中不存在。</td>
+</tr>
+<tr>
+<td><code>Rts_hccepose</code></td>
+<td>NumPy <code>N × 4 × 4</code></td>
+<td><code>hybrid</code> / <code>refine</code> 保留行对应的初始毫米制 PnP 位姿；MegaPose 返回评分时也使用该字段。</td>
+</tr>
+<tr>
+<td><code>wapr_scores</code></td>
+<td>NumPy <code>N</code></td>
+<td>仅 WAPR 模式：保留实例的 WBPS，不是 YOLO 置信度。</td>
+</tr>
+<tr>
+<td><code>wapr_instance_indices</code></td>
+<td>NumPy int <code>N</code></td>
+<td>仅 WAPR 模式：保留实例在该物体原始检测中的行号。</td>
 </tr>
 <tr>
 <td><code>conf</code></td>
@@ -209,10 +228,11 @@
 </tr>
 <tr>
 <td><code>time_dict</code></td>
-<td><code>yolo</code>、<code>hccepose</code>、<code>megapose</code>、<code>visualization</code>、<code>other</code> 的墙钟计时。</td>
+<td><code>yolo</code>、<code>hccepose</code>、<code>megapose</code>、<code>wapr</code>、<code>visualization</code>、<code>other</code> 的墙钟计时。</td>
 </tr>
 </tbody>
 </table></div>
+<p><code>wapr</code> 阶段包含掩码还原、估计与 NMS。首次调用还包含延迟注册及 WAPR 资源加载；测量多帧性能前应先预热。</p>
 <p>四个基础图像字段需要 <code>hccepose_vis=True</code>。图像为 BGR，可含多个拼接面板，尺寸不一定等于原图。<code>time_dict</code> 包含可视化，而 <code>time</code> 在可视化前结束，不能要求两者相加一致；这些计时也不等同于同步 GPU 基准。</p>
 <p>MegaPose 成功返回评分时，<code>Rts_hccepose</code> 保留初值，<code>Rts</code> 更新成功的位姿；<code>megapose_scores</code> 与 <code>megapose_valid_pose_ids</code> 对齐，不应按全部实例下标直接索引。<code>pnp_success</code> 仍只表示原始 PnP 状态。见<a href="refinement-api.html?lang=zh">精修接口</a>。</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="c1"># 转为米制平移时显式换算，旋转保持不变。</span>
@@ -224,7 +244,7 @@
 <h2 id="en-hccepose">HccePose</h2>
 <p><code>Tester.predict</code> groups detections by object ID. Within a group, <code>pnp_success[i]</code> records whether HccePose’s PnP solver succeeded for detection <code>i</code>. Check this boolean before using an RGB pose. With too few correspondences the solver can return the identity matrix and <code>pnp_success[i]</code> is <code>False</code>. When optional refinement is enabled, the flag still describes the initial PnP solve.</p>
 <p><code>Rts[i]</code> is a 4×4 object-to-camera transform with translation in millimeters. The mask <code>pred_mask[i]</code> is in crop coordinates. Use the existing helper to invert the crop transform, remove padding and restore the original resolution:</p>
-<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">Refinement.wapr_public</span><span class="w"> </span><span class="kn">import</span> <span class="n">restore_full_frame_masks</span>
+<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">Refinement.refinement_group</span><span class="w"> </span><span class="kn">import</span> <span class="n">restore_full_frame_masks</span>
 
 <span class="n">mask_i</span> <span class="o">=</span> <span class="n">restore_full_frame_masks</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">obj_id</span><span class="p">],</span> <span class="n">image_bgr</span><span class="o">.</span><span class="n">shape</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span>
 </code></pre></div>
@@ -233,6 +253,10 @@
 <p><code>pose_4x4_m</code> is an object-to-camera pose with meter translations. The adapter’s <code>score_6d</code> is computed by WAPR for the current input. It differs from YOLO confidence and is not guaranteed to lie in a probability interval.</p>
 <p>Results preserve input instance order. The saved <code>instance_index</code> is local to an object group, not a detector-global box ID or ground-truth label.</p>
 <p>Coordinate and channel-order conversions occur explicitly at the adapter boundary. The original Tester's millimeter convention is unchanged.</p>
+<p>With <code>Tester.predict(..., use_wapr=True)</code>, <code>Rts</code> contains only retained poses in millimeters. <code>wapr_scores</code> holds their WBPS values, and <code>wapr_instance_indices</code> maps each retained row to the original object-local detection index. Masks, transforms, crops, logits and YOLO <code>conf</code> are filtered by the same indices. Only <code>wapr_mode='estimate'</code> skips PnP and omits <code>pnp_success</code>. In <code>hybrid</code> and <code>refine</code>, the filtered <code>pnp_success</code> and <code>Rts_hccepose</code> still describe the original PnP solve. An object whose detections all fail filtering or are skipped has empty arrays, including <code>Rts</code> of shape <code>0×4×4</code>.</p>
+<p>Each object also exposes unfiltered <code>wapr_raw_records</code> and <code>wapr_decisions</code>. The top-level <code>wapr_postprocess</code> report contains all original meter poses and scores, decisions and retained records across objects. Its <code>kept_input_indices</code> addresses the report’s raw list; it is distinct from the object-local <code>wapr_instance_indices</code>. The raw list follows requested object order and original detection order within each object.</p>
+<p><code>wapr_mode</code> identifies the selected mode. <code>wapr_pose_sources</code> aligns with retained rows: <code>wapr</code> denotes a global WAPR candidate, <code>pnp_refined</code> a refined PnP seed, and <code>pnp</code> the original seed retained by the two-pose refinement scoring group. Raw records preserve this as <code>hypothesis_source</code>; seeded groups also expose <code>hypothesis_index</code> and <code>hypothesis_count</code>. In PnP modes they record <code>pnp_success</code> and, when valid, <code>pnp_pose_4x4_m</code> before refinement.</p>
+<p><code>refine</code> does not estimate failed or invalid PnP instances. The report lists them separately in <code>skipped_instances</code>, with object ID, original instance index and <code>pnp_failed</code> or <code>invalid_pnp_pose</code>; they have no fabricated score and no raw pose record. Each object's <code>wapr_skipped_instances</code> is its subset. <code>hybrid</code> may retain a WAPR result even when its initial <code>pnp_success</code> is false; that flag does not describe the final WAPR result.</p>
 <h2 id="en-per-object-fields">Per-object fields</h2>
 <p>Shapes below use the default <code>crop_size=256</code>; <code>N</code> is the instance count for that object. Tensors may reside on the GPU; call <code>detach().cpu()</code> before NumPy conversion.</p>
 <div aria-label="Horizontally scrollable table" class="table-scroll" role="region" tabindex="0"><table>
@@ -297,7 +321,22 @@
 <tr>
 <td><code>pnp_success</code></td>
 <td>NumPy bool <code>N</code></td>
-<td>Initial HccePose PnP success status.</td>
+<td>Initial HccePose PnP status; absent only in WAPR <code>estimate</code> mode.</td>
+</tr>
+<tr>
+<td><code>Rts_hccepose</code></td>
+<td>NumPy <code>N × 4 × 4</code></td>
+<td>Original PnP poses in mm for retained <code>hybrid</code> / <code>refine</code> rows; also used by MegaPose when it returns scores.</td>
+</tr>
+<tr>
+<td><code>wapr_scores</code></td>
+<td>NumPy <code>N</code></td>
+<td>WAPR-only: retained WBPS values, not YOLO confidence.</td>
+</tr>
+<tr>
+<td><code>wapr_instance_indices</code></td>
+<td>NumPy int <code>N</code></td>
+<td>WAPR-only: original object-local detection row for each retained instance.</td>
 </tr>
 <tr>
 <td><code>conf</code></td>
@@ -341,10 +380,11 @@
 </tr>
 <tr>
 <td><code>time_dict</code></td>
-<td>Wall-clock timings for <code>yolo</code>, <code>hccepose</code>, <code>megapose</code>, <code>visualization</code>, and <code>other</code>.</td>
+<td>Wall-clock timings for <code>yolo</code>, <code>hccepose</code>, <code>megapose</code>, <code>wapr</code>, <code>visualization</code>, and <code>other</code>.</td>
 </tr>
 </tbody>
 </table></div>
+<p>The <code>wapr</code> stage includes mask restoration, estimation and NMS. Its first call also includes deferred WAPR registration/resource loading; warm up before measuring repeated-frame performance.</p>
 <p>The four base images require <code>hccepose_vis=True</code>. They use BGR and may combine multiple panels, so their dimensions need not equal the original image. <code>time_dict</code> includes visualization, whereas <code>time</code> ends before it. Their totals need not agree, and neither is a synchronized GPU benchmark.</p>
 <p>When MegaPose returns scores, <code>Rts_hccepose</code> preserves the initial poses and <code>Rts</code> updates successful poses. <code>megapose_scores</code> aligns with <code>megapose_valid_pose_ids</code>, not necessarily every instance row. <code>pnp_success</code> still describes only initial PnP. See the <a href="refinement-api.html?lang=en">refinement API</a>.</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="c1"># Convert translations explicitly to meters; rotations are unchanged.</span>

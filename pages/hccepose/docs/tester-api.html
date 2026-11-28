@@ -168,6 +168,10 @@
     <span class="n">use_megapose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">megapose_vis</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">megapose_vis_stages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_wapr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">wbps_threshold</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
+    <span class="n">wapr_nms_iou_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">wapr_mode</span><span class="o">=</span><span class="s1">'estimate'</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 <div aria-label="横向滚动表格" class="table-scroll" role="region" tabindex="0"><table>
@@ -218,9 +222,26 @@
 <td><code>megapose_vis</code>、<code>megapose_vis_stages</code></td>
 <td>请求 MegaPose 调试图及阶段选择。</td>
 </tr>
+<tr>
+<td><code>use_wapr</code></td>
+<td>使用配准米制深度启用 WAPR；有可处理实例时自动注册，不能同时启用 <code>use_megapose=True</code>。</td>
+</tr>
+<tr>
+<td><code>wapr_mode</code></td>
+<td><code>'estimate'</code>（默认）：不用 PnP；<code>'hybrid'</code>：PnP 加 WAPR 候选；<code>'refine'</code>：只精修 PnP 初值。非默认模式须启用 <code>use_wapr=True</code>。</td>
+</tr>
+<tr>
+<td><code>wbps_threshold</code></td>
+<td>默认保留 WAPR <code>score_6d &gt;= 0.75</code>，与 YOLO 置信度独立。</td>
+</tr>
+<tr>
+<td><code>wapr_nms_iou_threshold</code></td>
+<td>同类 CAD 渲染掩码 NMS 的 IoU 门槛，默认 <code>0.5</code>。</td>
+</tr>
 </tbody>
 </table></div>
 <p>组合 PnP 模式需要 checkpoint 中的 <code>keypoints_</code> 先验；缺少时会在检测前报错，不会静默替换求解方式。输出中的 <code>pnp_success</code> 用于逐实例判断初始 PnP 是否成功。</p>
+<p>公开训练脚本的 15 维先验按 <code>F、B、BF、BFU</code> 枚举候选组合，其中 <code>BF</code> 交替使用前后表面点，<code>BFU</code> 还使用射线内插值点。两种组合求解器使用相同顺序，切换 VVS 不改变先验索引含义。自行生成的先验也须遵循该顺序，不能直接套用未知顺序的先验。</p>
 <p>最长边超过 640 像素的输入会先缩小，再按检测器 32 像素步长补边；内参和可选深度同步调整。二维结果字段以处理后画布为准。完整图像掩码须通过<a href="results-api.html?lang=zh">还原函数</a>回到输入分辨率。</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="c1"># 模型只初始化一次；在图片列表或视频循环中重复调用。</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">tester</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">cam_K</span><span class="p">,</span> <span class="n">image_bgr</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -230,7 +251,7 @@
     <span class="n">poses_mm</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s1">'Rts'</span><span class="p">][</span><span class="n">valid</span><span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">poses_mm</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 </code></pre></div>
-<p>没有检出的物体不会有对应整数键；字符串键保存计时和图像等信息。完整字段见<a href="results-api.html?lang=zh">结果字典</a>。WAPR 通过独立的<a href="refinement-api.html?lang=zh">掩码接入函数</a>调用。</p></div>
+<p>没有检出的物体不会有对应整数键；字符串键保存计时、图像及 WAPR 报告。WAPR 要求配准米制深度。仅 <code>wapr_mode='estimate'</code> 跳过 PnP、不返回 <code>pnp_success</code>。<code>hybrid</code> 和 <code>refine</code> 运行所选求解器并保留其状态；<code>refine</code> 跳过失败或无效初值，<code>hybrid</code> 仍可从掩码估计这些实例。WAPR 和 NMS 使用原图及原图内参。所有批量字段只含保留实例，维持原始顺序；某物体全部被筛除或跳过时仍保留该键，数组为空。完整字段见<a href="results-api.html?lang=zh">结果字典</a>，模式见<a href="refinement-api.html?lang=zh">精修接口</a>。</p></div>
 <div class="doc-language en"><h1 id="en-tester-api">Tester API</h1>
 <p><code>HccePose.tester.Tester</code> processes one OpenCV image or video frame. A detector proposes regions for known objects, per-object networks predict masks and front/back coordinates, and PnP estimates poses. Each object category may have multiple instances.</p>
 <h2 id="en-constructor">Constructor</h2>
@@ -311,6 +332,10 @@
     <span class="n">use_megapose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">megapose_vis</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">megapose_vis_stages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_wapr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">wbps_threshold</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
+    <span class="n">wapr_nms_iou_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">wapr_mode</span><span class="o">=</span><span class="s1">'estimate'</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 <div aria-label="Horizontally scrollable table" class="table-scroll" role="region" tabindex="0"><table>
@@ -361,8 +386,25 @@
 <td><code>megapose_vis</code>, <code>megapose_vis_stages</code></td>
 <td>Request MegaPose debug images and select stages.</td>
 </tr>
+<tr>
+<td><code>use_wapr</code></td>
+<td>Enable WAPR with registered meter depth. Registers automatically when a frame has eligible instances; cannot be combined with <code>use_megapose=True</code>.</td>
+</tr>
+<tr>
+<td><code>wapr_mode</code></td>
+<td><code>'estimate'</code> (default): no PnP; <code>'hybrid'</code>: PnP plus WAPR candidates; <code>'refine'</code>: PnP seeds only. Nondefault modes require <code>use_wapr=True</code>.</td>
+</tr>
+<tr>
+<td><code>wbps_threshold</code></td>
+<td>Keep WAPR <code>score_6d &gt;= 0.75</code> by default; independent of YOLO confidence.</td>
+</tr>
+<tr>
+<td><code>wapr_nms_iou_threshold</code></td>
+<td>Same-category rendered CAD mask NMS IoU threshold, default <code>0.5</code>.</td>
+</tr>
 </tbody>
 </table></div>
+<p>The public trainer’s 15-entry prior enumerates candidate combinations in <code>F, B, BF, BFU</code> order. <code>BF</code> alternates front/back points; <code>BFU</code> also uses points interpolated along the ray. Both combined solvers use this order, so enabling VVS does not change prior index meanings. Custom priors must follow the same order; do not reuse priors with unknown ordering.</p>
 <p>Combined PnP modes require <code>keypoints_</code> in the checkpoint. Missing priors raise before detection rather than silently changing the solver. Inspect <code>pnp_success</code> for each instance’s initial PnP status.</p>
 <p>Inputs whose longest side exceeds 640 pixels are resized and then padded to the detector’s 32-pixel stride. Intrinsics and optional depth are adjusted together. Pixel-valued result fields use this processed canvas. Use the <a href="results-api.html?lang=en">mask restoration helper</a> to return to input resolution.</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="c1"># Initialize the models once; repeat prediction for images or video frames.</span>
@@ -373,7 +415,7 @@
     <span class="n">poses_mm</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s1">'Rts'</span><span class="p">][</span><span class="n">valid</span><span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">poses_mm</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 </code></pre></div>
-<p>Undetected objects have no corresponding integer key. String keys contain timings and images. See the <a href="results-api.html?lang=en">results dictionary</a>. Call WAPR through the separate <a href="refinement-api.html?lang=en">mask integration function</a>.</p></div></article>
+<p>Undetected objects have no corresponding integer key. String keys contain timings, images and the WAPR report. WAPR requires registered meter depth. Only <code>wapr_mode='estimate'</code> skips PnP and omits <code>pnp_success</code>. <code>hybrid</code> and <code>refine</code> run the requested solver and preserve its status; <code>refine</code> skips failed or invalid seeds, whereas <code>hybrid</code> can still estimate them from masks. WAPR and NMS use the original frame and intrinsics. All batch fields contain only retained instances in original order; an object with all instances rejected or skipped remains present with empty arrays. See <a href="results-api.html?lang=en">results</a> and <a href="refinement-api.html?lang=en">the three modes</a>.</p></div></article>
       <nav class="pagination pagination-bottom" aria-label="上下页 / Previous and next pages"><a rel="prev" href="pose-training.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">位姿网络训练</span><span class="en" lang="en">Pose network training</span></span></strong></a><a rel="next" href="results-api.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">结果与坐标</span><span class="en" lang="en">Results and coordinates</span></span></strong></a></nav>
       <footer class="page-footer"><span>HCCEPose</span><a href="https://wangyulin-seu.github.io/?lang=en" data-project-directory=""><span class="language-pair"><span class="zh" lang="zh-CN">全部项目</span><span class="en" lang="en">All projects</span></span></a><span class="language-pair"><span class="zh" lang="zh-CN">从 CAD 模型到 6D 位姿</span><span class="en" lang="en">From CAD models to 6D poses</span></span></footer>
     </main>

@@ -89,31 +89,41 @@
       <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-rgb-示例">RGB 示例</a></li></ul>
 <ul class="en"><li class="outline-h2"><a href="#en-rgb-example">RGB example</a></li></ul></details>
       <article><div class="doc-language zh"><h1 id="zh-第一次预测">第一次预测</h1>
-<p>在包含 <code>examples/inference/</code> 的项目根目录操作。先完成<a href="installation.html?lang=zh">环境安装</a>和<a href="assets.html?lang=zh">资源准备</a>。</p>
+<p>在项目根目录操作。先完成<a href="installation.html?lang=zh">环境安装</a>和<a href="assets.html?lang=zh">资源准备</a>。</p>
 <h2 id="zh-rgb-示例">RGB 示例</h2>
-<p>编辑 <code>examples/inference/predict_image.py</code> 末尾的资源路径和物体编号，再执行：</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>examples/inference/predict_image.py
+<p>使用根目录的 RGB 示例 <code>s4_p3_test_mi10_bin_picking.py</code>，将 <code>dataset_path</code> 指向下载的模型目录，例如 <code>data/demo-bin-picking</code>，再执行：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>s4_p3_test_mi10_bin_picking.py
 </code></pre></div>
-<p>结果保存于 <code>outputs/rgb/</code>，包含检测框和标准位姿可视化。也可在 Python 应用中调用：</p>
-<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">examples.inference.predict_image</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span>
+<p>该脚本读取 <code>sample_data/images/</code> 中的自带 JPG，并将检测框和位姿图保存在输入旁。脚本内参对应这些 JPG 采集图，不能套用到 640×400 的 RGB-D 帧。若在应用中直接使用下载的 RGB-D 彩色帧：</p>
+<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="c1"># 路径指向自己准备的图像、内参及配套模型。</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">main</span><span class="p">(</span><span class="s2">"data/demo-bin-picking"</span><span class="p">,</span> <span class="s2">"data/test_imgs_RGBD/000003_rgb.png"</span><span class="p">,</span>
-               <span class="s2">"data/test_imgs_RGBD/000003_camera_matrix.json"</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">"outputs/rgb"</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">HccePose.bop_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">bop_dataset</span><span class="p">,</span> <span class="n">inout</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">HccePose.tester</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tester</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s2">"data/test_imgs_RGBD/000003_rgb.png"</span><span class="p">)</span>
+<span class="n">camera</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">inout</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="s2">"data/test_imgs_RGBD/000003_camera_matrix.json"</span><span class="p">))</span>
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">(</span><span class="n">bop_dataset</span><span class="p">(</span><span class="s2">"data/demo-bin-picking"</span><span class="p">),</span> <span class="n">hccepose_vis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">tester</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">camera</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </code></pre></div>
 <p>这一步需要匹配的权重与支持 CUDA 的 GPU 环境。</p></div>
 <div class="doc-language en"><h1 id="en-your-first-prediction">Your first prediction</h1>
-<p>Work from the project root, which contains <code>examples/inference/</code>. Complete <a href="installation.html?lang=en">installation</a> and <a href="assets.html?lang=en">resource preparation</a> first.</p>
+<p>Work from the project root. Complete <a href="installation.html?lang=en">installation</a> and <a href="assets.html?lang=en">resource preparation</a> first.</p>
 <h2 id="en-rgb-example">RGB example</h2>
-<p>Edit the resource paths and object IDs at the end of <code>examples/inference/predict_image.py</code>, then run:</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>examples/inference/predict_image.py
+<p>Use the root RGB example <code>s4_p3_test_mi10_bin_picking.py</code>. Set <code>dataset_path</code> to the downloaded model directory, such as <code>data/demo-bin-picking</code>, then run:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>s4_p3_test_mi10_bin_picking.py
 </code></pre></div>
-<p>Outputs go to <code>outputs/rgb/</code>, including detection and standard pose visualizations. Applications may also call:</p>
-<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">examples.inference.predict_image</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span>
+<p>This script reads the bundled JPG inputs under <code>sample_data/images/</code> and saves detection/pose images beside them. Its camera matrix matches those JPG captures; do not use it for the 640×400 RGB-D frame. To use that downloaded frame directly in an application:</p>
+<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="c1"># Use your own image, intrinsics and matching model resources.</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">main</span><span class="p">(</span><span class="s2">"data/demo-bin-picking"</span><span class="p">,</span> <span class="s2">"data/test_imgs_RGBD/000003_rgb.png"</span><span class="p">,</span>
-               <span class="s2">"data/test_imgs_RGBD/000003_camera_matrix.json"</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">"outputs/rgb"</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">HccePose.bop_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">bop_dataset</span><span class="p">,</span> <span class="n">inout</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">HccePose.tester</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tester</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="s2">"data/test_imgs_RGBD/000003_rgb.png"</span><span class="p">)</span>
+<span class="n">camera</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">inout</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="s2">"data/test_imgs_RGBD/000003_camera_matrix.json"</span><span class="p">))</span>
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">(</span><span class="n">bop_dataset</span><span class="p">(</span><span class="s2">"data/demo-bin-picking"</span><span class="p">),</span> <span class="n">hccepose_vis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">tester</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">camera</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </code></pre></div>
 <p>This step requires matching weights and a CUDA-capable GPU environment.</p></div></article>
       <nav class="pagination pagination-bottom" aria-label="上下页 / Previous and next pages"><a rel="prev" href="assets.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">模型与输入</span><span class="en" lang="en">Models and inputs</span></span></strong></a><a rel="next" href="troubleshooting.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">常见问题</span><span class="en" lang="en">Troubleshooting</span></span></strong></a></nav>

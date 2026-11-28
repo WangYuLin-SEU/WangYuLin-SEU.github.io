@@ -89,10 +89,10 @@
       <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-准备图像和检测框标签">准备图像和检测框标签</a></li><li class="outline-h2"><a href="#zh-训练和读取权重">训练和读取权重</a></li></ul>
 <ul class="en"><li class="outline-h2"><a href="#en-prepare-images-and-bounding-box-labels">Prepare images and bounding-box labels</a></li><li class="outline-h2"><a href="#en-train-the-detector-and-locate-the-weights">Train the detector and locate the weights</a></li></ul></details>
       <article><div class="doc-language zh"><h1 id="zh-训练-2d-检测器">训练 2D 检测器</h1>
-<p>本页使用<a href="https://github.com/WangYuLin-SEU/HCCEPose/tree/f75cc4d5db2fc298fc7b853f8c75273757872382" rel="noopener noreferrer">公开上游源码</a>中的准备、训练或评测脚本。请先按<a href="installation.html?lang=zh#zh-公开训练与渲染源码">安装说明</a>获取该版本，并在上游源码根目录执行本页命令；当前项目中的 <code>examples/inference/</code> 用于应用推理。</p>
+<p>本页使用本仓库根目录中的准备、训练或评测脚本。请按<a href="installation.html?lang=zh#zh-公开训练与渲染源码">安装说明</a>准备对应依赖，再从仓库根目录执行命令。应用推理使用根目录的 <code>s4_p3_*.py</code> 示例。</p>
 <p>HccePose(BF) 先用 YOLOv11 找到物体，再根据每个检测框内的图像估计 6D 位姿。要为自己的物体训练检测器，先将 <a href="rendering.html?lang=zh">PBR 渲染数据</a>中的图像和 BOP 标注转换为 YOLO 格式。</p>
 <h2 id="zh-准备图像和检测框标签">准备图像和检测框标签</h2>
-<p>公开 <code>s3_p1_prepare_yolo_label.py</code> 展示转换过程。该固定版本的入口路径拼接会重复加入数据集根目录，直接只替换占位字符串可能找不到文件。可将下面脚本保存在上游源码根目录，显式保留数据根、PBR 和输出三个不同路径；将 <code>dataset_root</code> 改为自己的数据位置。</p>
+<p>在 <code>s3_p1_prepare_yolo_label.py</code> 中设置数据根目录后即可转换。也可将下面脚本保存在仓库根目录，显式设置数据根、PBR 和输出路径；将 <code>dataset_root</code> 改为自己的数据位置。</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -129,7 +129,7 @@
 <p><code>s3_p2_train_yolo.py</code> 默认使用 8 张 GPU，训练 100 个 epoch。根据机器配置设置 <code>gpu_num</code> 后运行：</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>s3_p2_train_yolo.py
 </code></pre></div>
-<p>推理使用 <code>yolo11/train_obj_s/detection/obj_s/yolo11-detection-obj_s.pt</code>。训练脚本看到 <code>detection/obj_s/</code> 已存在就会跳过训练，即使里面还没有最终权重。若上一次训练中断，重跑前先检查该目录。只有外层脚本实际启动训练时，<code>yolo_train/train.py</code> 才会检查 <code>yolo11/train_obj_s/train/weights/last.pt</code>，并在找到时请求 <code>resume=True</code>。</p>
+<p>推理使用 <code>yolo11/train_obj_s/detection/obj_s/yolo11-detection-obj_s.pt</code>。只有该最终权重为非空文件时，包装脚本才跳过训练；空目录或零字节权重不会被当成完成。子进程失败或训练结束后缺少最终权重会明确报错。启动训练时，<code>yolo_train/train.py</code> 检查 <code>yolo11/train_obj_s/train/weights/last.pt</code>，并在找到时请求 <code>resume=True</code>。</p>
 <div class="code-block" data-code-language="text"><div class="code-toolbar"><span class="code-label">TEXT</span></div><pre aria-label="text 代码" tabindex="0"><code class="syntax-highlight">demo-bin-picking
 |--- models
 |--- train_pbr
@@ -146,12 +146,12 @@
             |--- autosplit_val.txt
 </code></pre></div>
 <p>检测器就绪后，接下来为位姿网络<a href="coordinate-labels.html?lang=zh">生成正背面坐标标签</a>。</p>
-<p>公开训练入口的输出路径也应检查：<code>save_dir</code> 已由 <code>data_objs_path</code> 定位，最终权重应使用 <code>os.path.join(save_dir, model_name)</code>；相对数据路径不要重复拼接根目录。训练后确认最终权重文件存在，再交给推理加载器。</p></div>
+<p>相对路径按本页要求从仓库根目录运行时解析。数据根、PBR、配置和权重路径分别构造，不重复拼接数据根。最终权重存在并不代替实际推理验证。</p></div>
 <div class="doc-language en"><h1 id="en-train-the-2d-detector">Train the 2D detector</h1>
-<p>This page uses preparation, training or evaluation scripts from the <a href="https://github.com/WangYuLin-SEU/HCCEPose/tree/f75cc4d5db2fc298fc7b853f8c75273757872382" rel="noopener noreferrer">public upstream source</a>. Obtain that revision as described in <a href="installation.html?lang=en#en-public-training-and-rendering-source">Installation</a>, and run these commands from its root. The current project’s <code>examples/inference/</code> provides application inference.</p>
+<p>This page uses preparation, training or evaluation scripts in this repository’s root. Prepare the dependencies described in <a href="installation.html?lang=en#en-public-training-and-rendering-source">Installation</a>, then run the commands from the repository root. Application inference examples use the root <code>s4_p3_*.py</code> scripts.</p>
 <p>HccePose(BF) uses YOLOv11 to locate objects and estimates a 6D pose from each detected crop. To train a detector for your objects, convert the images and BOP annotations from your <a href="rendering.html?lang=en">PBR scenes</a> to YOLO format.</p>
 <h2 id="en-prepare-images-and-bounding-box-labels">Prepare images and bounding-box labels</h2>
-<p>The public <code>s3_p1_prepare_yolo_label.py</code> illustrates conversion, but that fixed revision repeats the dataset root during path assembly. Merely replacing its placeholder can select nonexistent paths. Save this recipe in the upstream root, keeping dataset, PBR and output paths separate; set <code>dataset_root</code> to your data.</p>
+<p>Set the dataset root in <code>s3_p1_prepare_yolo_label.py</code> to run conversion. Alternatively, save this recipe in the repository root, keeping dataset, PBR and output paths separate; set <code>dataset_root</code> to your data.</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -188,7 +188,7 @@
 <p>The example trains for 100 epochs on eight GPUs. Set <code>gpu_num</code> in <code>s3_p2_train_yolo.py</code> to match your machine, then run:</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>s3_p2_train_yolo.py
 </code></pre></div>
-<p>Inference loads <code>yolo11/train_obj_s/detection/obj_s/yolo11-detection-obj_s.pt</code>. The training script skips training if <code>detection/obj_s/</code> already exists, even when the final weights are missing. Inspect that directory before retrying an interrupted run. If the outer script starts training, <code>yolo_train/train.py</code> checks for <code>yolo11/train_obj_s/train/weights/last.pt</code> and requests <code>resume=True</code> when it finds that checkpoint.</p>
+<p>Inference loads <code>yolo11/train_obj_s/detection/obj_s/yolo11-detection-obj_s.pt</code>. The wrapper skips training only when this final file is nonempty; an empty directory or zero-byte weight does not count as completion. A failed subprocess or missing final output raises an error. When training starts, <code>yolo_train/train.py</code> checks for <code>yolo11/train_obj_s/train/weights/last.pt</code> and requests <code>resume=True</code> when it finds that checkpoint.</p>
 <div class="code-block" data-code-language="text"><div class="code-toolbar"><span class="code-label">TEXT</span></div><pre aria-label="text code" tabindex="0"><code class="syntax-highlight">demo-bin-picking
 |--- models
 |--- train_pbr
@@ -205,7 +205,7 @@
             |--- autosplit_val.txt
 </code></pre></div>
 <p>Next, <a href="coordinate-labels.html?lang=en">generate the front and back coordinate labels</a> for the pose network.</p>
-<p>Also inspect the public training wrapper’s output path: <code>save_dir</code> is already derived from <code>data_objs_path</code>, so the final checkpoint should use <code>os.path.join(save_dir, model_name)</code>. Do not append relative dataset roots twice. Confirm the final file exists before inference.</p></div></article>
+<p>Relative paths resolve from the repository root as required above. Dataset, PBR, configuration and weight paths are constructed separately without repeating the root. A final weight file still needs an actual inference check.</p></div></article>
       <nav class="pagination pagination-bottom" aria-label="上下页 / Previous and next pages"><a rel="prev" href="rendering.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">PBR 场景渲染</span><span class="en" lang="en">PBR rendering</span></span></strong></a><a rel="next" href="coordinate-labels.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">前后表面坐标标签</span><span class="en" lang="en">Front/back coordinate labels</span></span></strong></a></nav>
       <footer class="page-footer"><span>HCCEPose</span><a href="https://wangyulin-seu.github.io/?lang=en" data-project-directory=""><span class="language-pair"><span class="zh" lang="zh-CN">全部项目</span><span class="en" lang="en">All projects</span></span></a><span class="language-pair"><span class="zh" lang="zh-CN">从 CAD 模型到 6D 位姿</span><span class="en" lang="en">From CAD models to 6D poses</span></span></footer>
     </main>

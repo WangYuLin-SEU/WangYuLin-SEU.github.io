@@ -90,7 +90,7 @@
 <ul class="en"><li class="outline-h2"><a href="#en-matching-resources">Matching resources</a></li><li class="outline-h2"><a href="#en-download-one-rgb-d-example">Download one RGB-D example</a></li><li class="outline-h2"><a href="#en-preparing-rgb-inference-offline">Preparing RGB inference offline</a></li><li class="outline-h2"><a href="#en-images-and-camera">Images and camera</a></li><li class="outline-h2"><a href="#en-other-public-data-and-training-resources">Other public data and training resources</a></li></ul></details>
       <article><div class="doc-language zh"><h1 id="zh-模型与输入">模型与输入</h1>
 <h2 id="zh-配套资源">配套资源</h2>
-<p>物体网格、模型信息、检测器类别顺序和逐物体位姿权重必须配套。公开资源见 <a href="https://huggingface.co/datasets/SEU-WYL/HccePose" rel="noopener noreferrer">HCCEPose 资源页</a>。本包不附应用场景数据或权重。</p>
+<p>物体网格、模型信息、检测器类别顺序和逐物体位姿权重必须配套。公开资源见 <a href="https://huggingface.co/datasets/SEU-WYL/HccePose" rel="noopener noreferrer">HCCEPose 资源页</a>。仓库在 <code>sample_data/</code> 中附带少量输入样例；模型权重和训练数据需单独下载。</p>
 <p><code>dataset_root</code> 保留公开加载器使用的目录结构：</p>
 <div class="code-block" data-code-language="text"><div class="code-toolbar"><span class="code-label">TEXT</span></div><pre aria-label="text 代码" tabindex="0"><code class="language-text syntax-highlight">objects/
   models/models_info.json
@@ -101,7 +101,16 @@
 <p><code>Tester</code> 初始化时会加载 <code>models_info.json</code> 所列的全部物体，因此每个物体都需准备位姿权重，并保持表中的物体顺序与检测器类别顺序一致。传给 <code>predict</code> 的物体编号列表只筛选本次预测，不限制初始化时的模型加载。</p>
 <p>在入口脚本中填写数据目录、物体编号和图像路径。检测器和逐物体位姿权重应来自可信且允许当前用途的来源，加载前按提供方的记录核对文件哈希。</p>
 <h2 id="zh-下载一个-rgb-d-示例">下载一个 RGB-D 示例</h2>
-<p>完成<a href="installation.html?lang=zh">环境安装</a>后，将下面代码保存为项目根目录的 Python 脚本并运行。资源保存于 <code>data/</code>，保留 Hugging Face 的目录结构；其中 <code>data/demo-bin-picking/</code> 是 <code>dataset_root</code>，无需改名为 <code>objects/</code>。</p>
+<p>仓库自带输入统一存放在 <code>sample_data/images/</code>、<code>sample_data/rgbd/</code> 和 <code>sample_data/videos/</code>；<code>tests/</code> 是代码测试。根目录的 <code>s4_p3_*.py</code> 示例读取这些自带目录。Hugging Face 下载仍保留上游名称（<code>test_imgs/</code>、<code>test_imgs_RGBD/</code>、<code>test_videos/</code>），使用额外下载的文件时，将入口中的输入路径指向实际下载目录。下方代码明确将资源下载至 <code>data/</code>。</p>
+<p>完成<a href="installation.html?lang=zh">环境安装</a>后，在项目根目录运行最小下载命令：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>scripts/download_hf_assets.py<span class="w"> </span>--preset<span class="w"> </span>demo<span class="w"> </span>--dest<span class="w"> </span>data<span class="w"> </span>--endpoint<span class="w"> </span>hf
+</code></pre></div>
+<p>命令下载并校验下面的七个文件，另外保存相机矩阵。官方地址无法访问时，可将参数改为 <code>--endpoint mirror</code>；两条路径请求同一固定版本，均保留完整性校验。若服务返回错误，保留已有文件，恢复连接后重试。</p>
+<p>若已在联网机器准备好全部七个文件，可按原层级复制 <code>data/</code>，再在目标机器离线校验：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight"><span class="nv">HF_HUB_OFFLINE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>scripts/download_hf_assets.py<span class="w"> </span>--preset<span class="w"> </span>demo<span class="w"> </span>--dest<span class="w"> </span>data<span class="w"> </span>--endpoint<span class="w"> </span>hf
+</code></pre></div>
+<p>离线模式仍检查文件大小、权重目录和权重摘要；缺件或损坏文件仍会使命令停止。</p>
+<p>下面是等价的显式写法，可保存为项目根目录的 Python 脚本。资源保存于 <code>data/</code>，保留 Hugging Face 的目录结构；其中 <code>data/demo-bin-picking/</code> 是 <code>dataset_root</code>，无需改名为 <code>objects/</code>。</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -233,7 +242,7 @@ python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from p
 <p>自己的数据应使用清晰的外部数据根目录，由该根构造模型、训练场景和标签路径。物体模型采用毫米，深度换算按对应采集元数据，而非根据文件扩展名猜测。制作新模型的完整流程见<a href="object-preparation.html?lang=zh">物体准备</a>。</p></div>
 <div class="doc-language en"><h1 id="en-models-and-inputs">Models and inputs</h1>
 <h2 id="en-matching-resources">Matching resources</h2>
-<p>Meshes, model metadata, detector class order and per-object pose weights must match. Published resources are available from the <a href="https://huggingface.co/datasets/SEU-WYL/HccePose" rel="noopener noreferrer">HCCEPose resource page</a>. Application captures and weights are not bundled.</p>
+<p>Meshes, model metadata, detector class order and per-object pose weights must match. Published resources are available from the <a href="https://huggingface.co/datasets/SEU-WYL/HccePose" rel="noopener noreferrer">HCCEPose resource page</a>. A small set of captures is bundled under <code>sample_data/</code>; download model weights and training data separately.</p>
 <p><code>dataset_root</code> follows the published loader layout:</p>
 <div class="code-block" data-code-language="text"><div class="code-toolbar"><span class="code-label">TEXT</span></div><pre aria-label="text code" tabindex="0"><code class="language-text syntax-highlight">objects/
   models/models_info.json
@@ -243,8 +252,17 @@ python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from p
 </code></pre></div>
 <p><code>Tester</code> loads every object listed in <code>models_info.json</code> during initialization, so prepare pose weights for each object and keep the object order in that file consistent with the detector’s class order. The object ID list passed to <code>predict</code> only selects objects for the current prediction; it does not limit which models are loaded at initialization.</p>
 <p>Set the dataset path, object IDs and image paths in the entry script. Use detector and pose checkpoints from a trusted source that permits your intended use. Check their hashes against the provider’s records before loading them.</p>
+<p>Bundled inputs are grouped under <code>sample_data/images/</code>, <code>sample_data/rgbd/</code> and <code>sample_data/videos/</code>; <code>tests/</code> contains code tests. The root <code>s4_p3_*.py</code> examples use those bundled directories. Hugging Face downloads retain their upstream names (<code>test_imgs/</code>, <code>test_imgs_RGBD/</code>, <code>test_videos/</code>), so point the example at the downloaded input directory when using additional files. The recipe below explicitly downloads to <code>data/</code>.</p>
 <h2 id="en-download-one-rgb-d-example">Download one RGB-D example</h2>
-<p>After <a href="installation.html?lang=en">installation</a>, save the following code as a Python script at the project root and run it. Assets go under <code>data/</code>, preserving the Hugging Face layout. Use <code>data/demo-bin-picking/</code> as <code>dataset_root</code>; there is no need to rename it to <code>objects/</code>.</p>
+<p>After <a href="installation.html?lang=en">installation</a>, run the minimal downloader from the project root:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>scripts/download_hf_assets.py<span class="w"> </span>--preset<span class="w"> </span>demo<span class="w"> </span>--dest<span class="w"> </span>data<span class="w"> </span>--endpoint<span class="w"> </span>hf
+</code></pre></div>
+<p>It fetches and validates the seven files below and writes a separate camera matrix. If the official endpoint is unreachable, retry with <code>--endpoint mirror</code>; both routes request the same fixed revision and keep validation enabled. If a service returns an error, keep the existing files and retry after connectivity is restored.</p>
+<p>If all seven files have already been prepared on a connected machine, copy the <code>data/</code> layout to the target and validate it offline:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight"><span class="nv">HF_HUB_OFFLINE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>scripts/download_hf_assets.py<span class="w"> </span>--preset<span class="w"> </span>demo<span class="w"> </span>--dest<span class="w"> </span>data<span class="w"> </span>--endpoint<span class="w"> </span>hf
+</code></pre></div>
+<p>Offline mode does not waive the file-size, checkpoint-directory or weight-digest checks. Missing or damaged files still stop the command.</p>
+<p>The equivalent explicit recipe below can be saved as a Python script at the project root. Assets go under <code>data/</code>, preserving the Hugging Face layout. Use <code>data/demo-bin-picking/</code> as <code>dataset_root</code>; there is no need to rename it to <code>objects/</code>.</p>
 <div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>

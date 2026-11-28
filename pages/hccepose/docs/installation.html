@@ -94,13 +94,19 @@
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">git<span class="w"> </span>clone<span class="w"> </span>https://github.com/WangYuLin-SEU/HCCEPose.git
 <span class="nb">cd</span><span class="w"> </span>HCCEPose
 </code></pre></div>
-<p>应用入口位于 <code>examples/inference/</code>，公开训练与渲染阶段脚本仍保留在根目录。</p>
+<p>RGB、RGB-D、训练与渲染示例均位于项目根目录。WAPR 使用 <code>s4_p3_test_mi10_bin_picking_RGBD_wapr.py</code>，预测后自动执行后处理。</p>
 <h2 id="zh-hccepose-环境">HccePose 环境</h2>
-<p>根据驱动选择适用的 <a href="https://pytorch.org/get-started/locally/" rel="noopener noreferrer">PyTorch CUDA 安装方式</a>，再安装本包依赖：</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-inference.txt
+<p>使用独立的 Python 3.10 环境。若尚未创建，可使用 Python 3.10 解释器执行以下命令，再安装依赖：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</code></pre></div>
+<p>Windows Git Bash 中改为激活 <code>.venv/Scripts/activate</code>。安装 HccePose、准备 WAPR 和运行推理时应始终使用同一个环境。</p>
+<p>根据驱动选择适用的 <a href="https://pytorch.org/get-started/locally/" rel="noopener noreferrer">PyTorch CUDA 安装方式</a>，再安装本包依赖。驱动支持 CUDA 12.8 时，可使用以下 PyTorch 2.8 示例：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.23.0<span class="w"> </span><span class="nv">torchaudio</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu128
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-inference.txt
 python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>bop_toolkit.zip<span class="w"> </span>.
 </code></pre></div>
-<p>工具包解压后应存在 <code>bop_toolkit/bop_toolkit_lib/</code>。接下来按<a href="assets.html?lang=zh">资源说明</a>准备匹配的检测器和各物体的位姿权重。</p>
+<p>依赖文件固定 Ultralytics 为 8.3.70、NumPy 为 1.26.4、OpenCV 为 4.9.0.80，请保持这组版本；单独升级 OpenCV 可能导致可视化代码不兼容。工具包解压后应存在 <code>bop_toolkit/bop_toolkit_lib/</code>。接下来按<a href="assets.html?lang=zh">资源说明</a>准备匹配的检测器和各物体的位姿权重。</p>
 <h2 id="zh-可选-wapr">可选 WAPR</h2>
 <p>RGB-D 示例使用<a href="https://github.com/WangYuLin-SEU/WAPR/tree/4e591be318a828c91980c58ef8bbdc34e6599881" rel="noopener noreferrer">这个固定提交的 WAPR 源码</a>。请在本项目以外的工作目录中使用 Git、Python 3.10 和 Bash 执行以下命令。生成的 wheel 带有本地编译所需的源码。</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">git<span class="w"> </span>clone<span class="w"> </span>--no-checkout<span class="w"> </span>https://github.com/WangYuLin-SEU/WAPR.git<span class="w"> </span>WAPR-source
@@ -109,20 +115,42 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 <span class="o">(</span><span class="nb">cd</span><span class="w"> </span>WAPR-source<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">WAPR_WHEEL_SOURCE_ONLY</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>wheel_build/build_wheel.py<span class="o">)</span>
 python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>WAPR-source/wheel_build/dist/wapr-0.0.11-py3-none-any.whl
 </code></pre></div>
-<p>如在另一台机器构建，将上述 wheel 复制到目标机，把最后一条安装命令中的路径改为目标机上的位置，在 <strong>HccePose 使用的同一 Python 环境</strong>中安装。目标机需备好含 <code>nvcc</code> 的 CUDA toolkit、C++ 编译器和支持 CUDA 的 PyTorch。Linux 上的 OpenGL 渲染器还需要 EGL/OpenGL 开发头文件。随后准备位姿估计组件：</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>wapr.bootstrap<span class="w"> </span>--feature<span class="w"> </span>core
+<p>如在另一台机器构建，将上述 wheel 复制到目标机，把最后一条安装命令中的路径改为目标机上的位置，在 <strong>HccePose 使用的同一 Python 环境</strong>中安装。目标机需备好含 <code>nvcc</code> 的 CUDA toolkit、C++ 编译器和支持 CUDA 的 PyTorch。Linux 上的 OpenGL 渲染器还需要 EGL/OpenGL 开发头文件。</p>
+<p>回到 HCCEPose 项目根目录，在准备组件前选择资源目录。WAPR 默认使用用户缓存目录中的 <code>wapr/</code>；若希望把资源放在当前项目内，可设置绝对路径：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight"><span class="nb">export</span><span class="w"> </span><span class="nv">WAPR_CACHE_DIR</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">/.cache/wapr"</span>
 </code></pre></div>
-<p>WAPR 默认将资源放在用户缓存目录中的 <code>wapr/</code>，可选的 <code>WAPR_CACHE_DIR</code> 必须是绝对路径；配置组件和运行推理时应使用同一个值。该目录独立于 HccePose 的 <code>data/</code> 和 Torch Hub 缓存。以上构建命令使用 Bash；Windows 可使用 Git Bash，并按上游要求准备 MSVC 与 CUDA，不能直接将 Bash 子命令粘贴到 PowerShell。</p>
+<p>准备和推理时始终使用同一个值。它独立于 HccePose 的 <code>data/</code> 和 Torch Hub 缓存。随后检查环境、准备核心组件，并只下载四份位姿权重：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>wapr.bootstrap<span class="w"> </span>--feature<span class="w"> </span>core<span class="w"> </span>--check
+python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;'PY'</span>
+<span class="s">from wapr.bootstrap import prepare_feature</span>
+<span class="s">from wapr.download_assets import check_and_fetch_pack</span>
+
+<span class="s">result = prepare_feature("core", allow_replacement=False)</span>
+<span class="s">if result.get("status") != "ready":</span>
+<span class="s">    raise RuntimeError(result)</span>
+<span class="s">check_and_fetch_pack("wapr_sapr_wbps")</span>
+<span class="s">PY</span>
+</code></pre></div>
+<p>这组命令保留已有包版本；若报告依赖冲突，先调整环境再重试。该固定版本的完整命令 <code>python -m wapr.bootstrap --feature core</code> 还会下载 WAPR 教程样例，HCCEPose 的这个示例不需要这些数据。</p>
+<p>以上构建命令使用 Bash；Windows 可使用 Git Bash，并按上游要求准备 MSVC 与 CUDA，不能直接将 Bash 子命令粘贴到 PowerShell。</p>
+<p>Linux 默认使用 TensorRT。安装后的 wheel 在四份 FP16 位姿引擎均缺失时，会于首次调用尝试构建整套引擎。使用 PyTorch 2.8 时，请先用下面的命令显式构建：它的融合注意力快路径可能在 ONNX 导出时产生不支持的 <code>aten::_native_multi_head_attention</code> 算子。</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;'PY'</span>
+<span class="s">import torch</span>
+<span class="s">from wapr.export_engines import main as export_engines</span>
+
+<span class="s">torch.backends.mha.set_fastpath_enabled(False)</span>
+<span class="s">export_engines()</span>
+<span class="s">PY</span>
+</code></pre></div>
+<p>该设置仅在本次导出进程中关闭融合注意力，不修改 WAPR 源码或推理配方。引擎仅部分存在时，也可用同一命令重建整套。引擎缓存应与目标 GPU 和软件栈配套。若先检查 PyTorch 推理路径，可在运行 HCCEPose 示例前显式执行 <code>export WAPR_BACKEND=torch</code>；取消该环境变量后恢复上游默认选择。引擎构建和首次下载属于准备过程，不计作稳定推理耗时。</p>
+<p>需要在其他 GPU 上自动构建引擎时，在启动 Python 前设置 <code>CUDA_VISIBLE_DEVICES</code>，并保持入口脚本的 <code>device = '0'</code>，让它使用第一张可见 GPU。</p>
 <p>首次配置需联网下载公开权重和依赖。请在目标 GPU 上用配套模型和实际输入验证完整流程。详见<a href="https://github.com/WangYuLin-SEU/WAPR/tree/4e591be318a828c91980c58ef8bbdc34e6599881#start" rel="noopener noreferrer">该版本 WAPR 的安装说明</a>。</p>
 <h2 id="zh-公开训练与渲染源码">公开训练与渲染源码</h2>
-<p>物体准备、PBR 渲染、标签生成、检测器训练、位姿训练和 BOP 评测脚本已保留在项目根目录。教程源码链接标明原始公开设置；如需使用该历史版本，可另建独立副本：</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">git<span class="w"> </span>clone<span class="w"> </span>https://github.com/WangYuLin-SEU/HCCEPose.git<span class="w"> </span>HCCEPose-upstream
-<span class="nb">cd</span><span class="w"> </span>HCCEPose-upstream
-git<span class="w"> </span>checkout<span class="w"> </span>--detach<span class="w"> </span>f75cc4d5db2fc298fc7b853f8c75273757872382
-python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>bop_toolkit.zip<span class="w"> </span>.
+<p>物体准备、PBR 渲染、标签生成、检测器训练、位姿训练和 BOP 评测脚本位于项目根目录。使用与本文档配套的当前脚本，并先解压随附工具包：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>bop_toolkit.zip<span class="w"> </span>.
 </code></pre></div>
-<p>这些脚本位于该目录根部，如 <code>s1_p1_obj_rename_center.py</code>、<code>s4_p2_train_bf_pbr.py</code>；它们不在当前项目的 <code>examples/inference/</code> 中。教程链接均指向公开固定版本。阅读各脚本顶部的输入要求，修改用户数据路径后再运行。</p>
-<p>训练和渲染的依赖多于纯推理。PyMeshLab 用于网格预处理，KASAL 用于对称信息；BlenderProc 与 <code>bpy</code> 用于 PBR 渲染。需要渲染时在上游源码根目录执行：</p>
+<p>这些脚本包括模型准备入口 <code>s1_p1_obj_rename_center.py</code>、训练入口 <code>s4_p2_train_bf_pbr.py</code>；根目录的 <code>s4_p3_*.py</code> 用于应用推理。阅读各脚本顶部的输入要求，修改用户数据路径后再运行。</p>
+<p>训练和渲染的依赖多于纯推理。PyMeshLab 用于网格预处理，KASAL 用于对称信息；BlenderProc 与 <code>bpy</code> 用于 PBR 渲染。需要渲染时在仓库根目录执行：</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>blenderproc.zip<span class="w"> </span>.
 python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">bpy</span><span class="o">==</span><span class="m">3</span>.6.0<span class="w"> </span>--extra-index-url<span class="w"> </span>https://download.blender.org/pypi/
 </code></pre></div>
@@ -136,13 +164,19 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">git<span class="w"> </span>clone<span class="w"> </span>https://github.com/WangYuLin-SEU/HCCEPose.git
 <span class="nb">cd</span><span class="w"> </span>HCCEPose
 </code></pre></div>
-<p>Application entry points are in <code>examples/inference/</code>; public training and rendering stage scripts remain in the root.</p>
+<p>RGB, RGB-D, training and rendering examples are in the project root. WAPR uses <code>s4_p3_test_mi10_bin_picking_RGBD_wapr.py</code> and automatically postprocesses its predictions.</p>
 <h2 id="en-hccepose-environment">HccePose environment</h2>
-<p>Install <a href="https://pytorch.org/get-started/locally/" rel="noopener noreferrer">CUDA-enabled PyTorch</a> suitable for your driver, then install the package dependencies:</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-inference.txt
+<p>Use a dedicated Python 3.10 environment. If you do not already have one, create it with your Python 3.10 interpreter and activate it before installing packages:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</code></pre></div>
+<p>On Windows Git Bash, activate <code>.venv/Scripts/activate</code> instead. Keep the same environment active for HccePose, WAPR setup and inference.</p>
+<p>Install <a href="https://pytorch.org/get-started/locally/" rel="noopener noreferrer">CUDA-enabled PyTorch</a> suitable for your driver, then install the package dependencies. For a driver supporting CUDA 12.8, the PyTorch 2.8 example is:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.23.0<span class="w"> </span><span class="nv">torchaudio</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu128
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-inference.txt
 python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>bop_toolkit.zip<span class="w"> </span>.
 </code></pre></div>
-<p>Extraction must create <code>bop_toolkit/bop_toolkit_lib/</code>. Next, prepare the matching detector and per-object pose weights described in <a href="assets.html?lang=en">resource preparation</a>.</p>
+<p>The requirements pin Ultralytics to 8.3.70, NumPy to 1.26.4 and OpenCV to 4.9.0.80. Keep these versions together; installing a newer OpenCV independently can break the visualization code. Extraction must create <code>bop_toolkit/bop_toolkit_lib/</code>. Next, prepare the matching detector and per-object pose weights described in <a href="assets.html?lang=en">resource preparation</a>.</p>
 <h2 id="en-optional-wapr">Optional WAPR</h2>
 <p>The RGB-D example uses the <a href="https://github.com/WangYuLin-SEU/WAPR/tree/4e591be318a828c91980c58ef8bbdc34e6599881" rel="noopener noreferrer">pinned WAPR source</a>. To build its wheel, run the following Bash commands with Git and Python 3.10 in a working directory outside this project. The wheel contains the sources for the native components.</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">git<span class="w"> </span>clone<span class="w"> </span>--no-checkout<span class="w"> </span>https://github.com/WangYuLin-SEU/WAPR.git<span class="w"> </span>WAPR-source
@@ -151,20 +185,42 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 <span class="o">(</span><span class="nb">cd</span><span class="w"> </span>WAPR-source<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">WAPR_WHEEL_SOURCE_ONLY</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>wheel_build/build_wheel.py<span class="o">)</span>
 python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>WAPR-source/wheel_build/dist/wapr-0.0.11-py3-none-any.whl
 </code></pre></div>
-<p>If you build on a different machine, copy the wheel named above to the target and run the last installation command with its local path in the <strong>same Python environment as HccePose</strong>. On the target, prepare a CUDA toolkit with <code>nvcc</code>, a C++ compiler and CUDA-enabled PyTorch. On Linux the OpenGL renderer also needs EGL/OpenGL development headers. Then prepare the pose estimation components:</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>wapr.bootstrap<span class="w"> </span>--feature<span class="w"> </span>core
+<p>If you build on a different machine, copy the wheel named above to the target and run the last installation command with its local path in the <strong>same Python environment as HccePose</strong>. On the target, prepare a CUDA toolkit with <code>nvcc</code>, a C++ compiler and CUDA-enabled PyTorch. On Linux the OpenGL renderer also needs EGL/OpenGL development headers.</p>
+<p>Return to the HCCEPose project root and choose the resource directory before setup. WAPR defaults to <code>wapr/</code> under the user cache. To keep its resources inside this project instead, set an absolute path:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight"><span class="nb">export</span><span class="w"> </span><span class="nv">WAPR_CACHE_DIR</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">/.cache/wapr"</span>
 </code></pre></div>
-<p>WAPR stores resources under <code>wapr/</code> in the user cache directory by default. The optional <code>WAPR_CACHE_DIR</code> must be an absolute path; use the same value for component setup and inference. This directory is separate from HccePose’s <code>data/</code> and the Torch Hub cache. The build commands above use Bash. On Windows, use Git Bash and prepare MSVC and CUDA as required upstream; do not paste the Bash subshell command directly into PowerShell.</p>
+<p>Use the same value during preparation and inference. It is separate from HccePose's <code>data/</code> and the Torch Hub cache. Then inspect the environment, prepare the core and download only the four pose checkpoints:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>wapr.bootstrap<span class="w"> </span>--feature<span class="w"> </span>core<span class="w"> </span>--check
+python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;'PY'</span>
+<span class="s">from wapr.bootstrap import prepare_feature</span>
+<span class="s">from wapr.download_assets import check_and_fetch_pack</span>
+
+<span class="s">result = prepare_feature("core", allow_replacement=False)</span>
+<span class="s">if result.get("status") != "ready":</span>
+<span class="s">    raise RuntimeError(result)</span>
+<span class="s">check_and_fetch_pack("wapr_sapr_wbps")</span>
+<span class="s">PY</span>
+</code></pre></div>
+<p>This keeps existing package versions; resolve any reported dependency conflict before retrying. The pinned version's full <code>python -m wapr.bootstrap --feature core</code> command also downloads WAPR tutorial samples. Those samples are unnecessary for this HCCEPose example.</p>
+<p>The build commands above use Bash. On Windows, use Git Bash and prepare MSVC and CUDA as required upstream; do not paste the Bash subshell command directly into PowerShell.</p>
+<p>Linux defaults to TensorRT. An installed wheel attempts to build all four missing FP16 pose engines at first use. With PyTorch 2.8, prepare the engines explicitly using the command below: its fused attention fast path can otherwise cause an unsupported <code>aten::_native_multi_head_attention</code> operator during ONNX export.</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;'PY'</span>
+<span class="s">import torch</span>
+<span class="s">from wapr.export_engines import main as export_engines</span>
+
+<span class="s">torch.backends.mha.set_fastpath_enabled(False)</span>
+<span class="s">export_engines()</span>
+<span class="s">PY</span>
+</code></pre></div>
+<p>The setting disables fused attention only in this export process; it does not modify WAPR source or the inference recipe. The same command rebuilds a partial engine set. Keep engine caches local to the target GPU and software stack. To check the PyTorch inference path first, explicitly run <code>export WAPR_BACKEND=torch</code> before the HCCEPose example. Unset it to return to the upstream default. Engine construction and first-time downloads are preparation work, not steady-state inference time.</p>
+<p>For automatic engine construction on another GPU, set <code>CUDA_VISIBLE_DEVICES</code> before starting Python and keep the entry script's <code>device = '0'</code>; this selects the first visible GPU.</p>
 <p>The first setup needs network access to fetch the published weights and dependencies. Test the complete setup on the target GPU with your models and inputs. See the <a href="https://github.com/WangYuLin-SEU/WAPR/tree/4e591be318a828c91980c58ef8bbdc34e6599881#start" rel="noopener noreferrer">setup notes for this WAPR revision</a>.</p>
 <h2 id="en-public-training-and-rendering-source">Public training and rendering source</h2>
-<p>Object preparation, PBR rendering, labeling, detector training, pose training and BOP evaluation scripts are included in the project root. Tutorial source links identify the original published settings. To work specifically with that historical revision, optionally use a separate checkout:</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">git<span class="w"> </span>clone<span class="w"> </span>https://github.com/WangYuLin-SEU/HCCEPose.git<span class="w"> </span>HCCEPose-upstream
-<span class="nb">cd</span><span class="w"> </span>HCCEPose-upstream
-git<span class="w"> </span>checkout<span class="w"> </span>--detach<span class="w"> </span>f75cc4d5db2fc298fc7b853f8c75273757872382
-python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>bop_toolkit.zip<span class="w"> </span>.
+<p>Object preparation, PBR rendering, labeling, detector training, pose training and BOP evaluation scripts are included in the project root. Use the current scripts accompanying this documentation and extract the bundled toolkit first:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>bop_toolkit.zip<span class="w"> </span>.
 </code></pre></div>
-<p>Stage scripts such as <code>s1_p1_obj_rename_center.py</code> and <code>s4_p2_train_bf_pbr.py</code> live in that root, alongside the current project’s application examples in <code>examples/inference/</code>. Tutorial links use the fixed public revision. Read the input requirements and edit user data paths before launching each stage.</p>
-<p>Training and rendering require more dependencies than inference. PyMeshLab prepares meshes, KASAL describes symmetries, and BlenderProc with <code>bpy</code> renders PBR scenes. For rendering, run in the upstream root:</p>
+<p>Stage scripts such as <code>s1_p1_obj_rename_center.py</code> and <code>s4_p2_train_bf_pbr.py</code> prepare models or train networks; the root <code>s4_p3_*.py</code> scripts run application inference. Read the input requirements and edit user data paths before launching each stage.</p>
+<p>Training and rendering require more dependencies than inference. PyMeshLab prepares meshes, KASAL describes symmetries, and BlenderProc with <code>bpy</code> renders PBR scenes. For rendering, run in the repository root:</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>blenderproc.zip<span class="w"> </span>.
 python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">bpy</span><span class="o">==</span><span class="m">3</span>.6.0<span class="w"> </span>--extra-index-url<span class="w"> </span>https://download.blender.org/pypi/
 </code></pre></div>

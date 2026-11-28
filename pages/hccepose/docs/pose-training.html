@@ -89,10 +89,10 @@
       <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-配置训练脚本">配置训练脚本</a></li><li class="outline-h2"><a href="#zh-单卡调试或多卡训练">单卡调试或多卡训练</a></li><li class="outline-h2"><a href="#zh-检查权重和训练进度">检查权重和训练进度</a></li></ul>
 <ul class="en"><li class="outline-h2"><a href="#en-configure-the-training-script">Configure the training script</a></li><li class="outline-h2"><a href="#en-run-on-one-or-more-gpus">Run on one or more GPUs</a></li><li class="outline-h2"><a href="#en-find-the-weights-and-monitor-training">Find the weights and monitor training</a></li></ul></details>
       <article><div class="doc-language zh"><h1 id="zh-为每个物体训练-hcceposebf">为每个物体训练 HccePose(BF)</h1>
-<p>本页使用<a href="https://github.com/WangYuLin-SEU/HCCEPose/tree/f75cc4d5db2fc298fc7b853f8c75273757872382" rel="noopener noreferrer">公开上游源码</a>中的准备、训练或评测脚本。请先按<a href="installation.html?lang=zh#zh-公开训练与渲染源码">安装说明</a>获取该版本，并在上游源码根目录执行本页命令；当前项目中的 <code>examples/inference/</code> 用于应用推理。</p>
+<p>本页使用本仓库根目录中的准备、训练或评测脚本。请按<a href="installation.html?lang=zh#zh-公开训练与渲染源码">安装说明</a>准备对应依赖，再从仓库根目录执行命令。应用推理使用根目录的 <code>s4_p3_*.py</code> 示例。</p>
 <p>HccePose(BF) 为每个物体单独训练一套权重。<code>s4_p2_train_bf_pbr.py</code> 可以依次训练多个物体，每个物体的训练可以使用一张或多张 GPU。</p>
 <h2 id="zh-配置训练脚本">配置训练脚本</h2>
-<p>先准备<a href="object-preparation.html?lang=zh">物体模型与元数据</a>、<a href="rendering.html?lang=zh">PBR 场景</a>和<a href="coordinate-labels.html?lang=zh">正背面坐标标签</a>。打开<a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/f75cc4d5db2fc298fc7b853f8c75273757872382/s4_p2_train_bf_pbr.py" rel="noopener noreferrer">训练脚本</a>，在 <code>__main__</code> 中将 <code>dataset_path</code> 换成自己的数据集路径，并设置物体 ID 范围。</p>
+<p>先准备<a href="object-preparation.html?lang=zh">物体模型与元数据</a>、<a href="rendering.html?lang=zh">PBR 场景</a>和<a href="coordinate-labels.html?lang=zh">正背面坐标标签</a>。打开<a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/main/s4_p2_train_bf_pbr.py" rel="noopener noreferrer">训练脚本</a>，在 <code>__main__</code> 中将 <code>dataset_path</code> 换成自己的数据集路径，并设置物体 ID 范围。</p>
 <div aria-label="横向滚动表格" class="table-scroll" role="region" tabindex="0"><table>
 <thead>
 <tr>
@@ -147,12 +147,14 @@ nohup python -u -m torch.distributed.launch --nproc_per_node 6 s4_p2_train_bf_pb
 |--- train_pbr_xyz_GT_back
 |--- train_pbr_xyz_GT_front
 </code></pre></div>
-<p>训练过程中的 <code>test()</code> 从同一个 <code>train_pbr</code> 划分中抽取 1% 的样本，可以用来观察训练进度。要报告基准成绩，请在对应的测试集上进行 <a href="bop-evaluation.html?lang=zh">BOP 评测</a>。</p></div>
+<p>训练过程中的 <code>test()</code> 从同一个 <code>train_pbr</code> 划分中抽取 1% 的样本，可以用来观察训练进度。要报告基准成绩，请在对应的测试集上进行 <a href="bop-evaluation.html?lang=zh">BOP 评测</a>。</p>
+<p>本地监控指标对存在非平凡对称变换的物体使用 ADD-S，其余使用 ADD；空对称列表或仅单位变换仍使用 ADD。通过阈值保持物体直径的 10%。该指标不代替官方 BOP 评分。</p>
+<p>续训时，已有 checkpoint 无法恢复会停止并报告文件和原因，不会静默重置训练步数。只有 checkpoint 目录不存在或为空才开始新训练。</p></div>
 <div class="doc-language en"><h1 id="en-train-hcceposebf-for-each-object">Train HccePose(BF) for each object</h1>
-<p>This page uses preparation, training or evaluation scripts from the <a href="https://github.com/WangYuLin-SEU/HCCEPose/tree/f75cc4d5db2fc298fc7b853f8c75273757872382" rel="noopener noreferrer">public upstream source</a>. Obtain that revision as described in <a href="installation.html?lang=en#en-public-training-and-rendering-source">Installation</a>, and run these commands from its root. The current project’s <code>examples/inference/</code> provides application inference.</p>
+<p>This page uses preparation, training or evaluation scripts in this repository’s root. Prepare the dependencies described in <a href="installation.html?lang=en#en-public-training-and-rendering-source">Installation</a>, then run the commands from the repository root. Application inference examples use the root <code>s4_p3_*.py</code> scripts.</p>
 <p>HccePose(BF) learns a separate set of weights for each object. The script <code>s4_p2_train_bf_pbr.py</code> trains objects in sequence and can use one or more GPUs for each object.</p>
 <h2 id="en-configure-the-training-script">Configure the training script</h2>
-<p>Prepare the <a href="object-preparation.html?lang=en">meshes and metadata</a>, <a href="rendering.html?lang=en">PBR scenes</a> and <a href="coordinate-labels.html?lang=en">front and back coordinate labels</a>. Open the <a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/f75cc4d5db2fc298fc7b853f8c75273757872382/s4_p2_train_bf_pbr.py" rel="noopener noreferrer">training script</a> and edit the variables in <code>__main__</code>. Replace the placeholder <code>dataset_path</code> and set the object ID range.</p>
+<p>Prepare the <a href="object-preparation.html?lang=en">meshes and metadata</a>, <a href="rendering.html?lang=en">PBR scenes</a> and <a href="coordinate-labels.html?lang=en">front and back coordinate labels</a>. Open the <a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/main/s4_p2_train_bf_pbr.py" rel="noopener noreferrer">training script</a> and edit the variables in <code>__main__</code>. Replace the placeholder <code>dataset_path</code> and set the object ID range.</p>
 <div aria-label="Horizontally scrollable table" class="table-scroll" role="region" tabindex="0"><table>
 <thead>
 <tr>
@@ -207,7 +209,9 @@ nohup python -u -m torch.distributed.launch --nproc_per_node 6 s4_p2_train_bf_pb
 |--- train_pbr_xyz_GT_back
 |--- train_pbr_xyz_GT_front
 </code></pre></div>
-<p>During training, <code>test()</code> samples 1% of the same <code>train_pbr</code> split to monitor progress. For benchmark scores, run <a href="bop-evaluation.html?lang=en">BOP evaluation</a> on the corresponding test split.</p></div></article>
+<p>During training, <code>test()</code> samples 1% of the same <code>train_pbr</code> split to monitor progress. For benchmark scores, run <a href="bop-evaluation.html?lang=en">BOP evaluation</a> on the corresponding test split.</p>
+<p>Local monitoring uses ADD-S for objects with a nontrivial symmetry transform and ADD otherwise; empty symmetry lists or identity-only transforms keep ADD. The pass threshold remains 10% of the object diameter. This monitoring metric does not replace official BOP scoring.</p>
+<p>An existing checkpoint that cannot be restored stops training with its path and cause instead of silently resetting the step. Only a missing or empty checkpoint directory starts a new run.</p></div></article>
       <nav class="pagination pagination-bottom" aria-label="上下页 / Previous and next pages"><a rel="prev" href="coordinate-labels.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">前后表面坐标标签</span><span class="en" lang="en">Front/back coordinate labels</span></span></strong></a><a rel="next" href="tester-api.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">Tester 接口</span><span class="en" lang="en">Tester API</span></span></strong></a></nav>
       <footer class="page-footer"><span>HCCEPose</span><a href="https://wangyulin-seu.github.io/?lang=en" data-project-directory=""><span class="language-pair"><span class="zh" lang="zh-CN">全部项目</span><span class="en" lang="en">All projects</span></span></a><span class="language-pair"><span class="zh" lang="zh-CN">从 CAD 模型到 6D 位姿</span><span class="en" lang="en">From CAD models to 6D poses</span></span></footer>
     </main>

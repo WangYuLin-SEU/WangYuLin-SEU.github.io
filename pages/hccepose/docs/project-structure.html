@@ -92,15 +92,19 @@
 <p>本项目包含应用推理、公开 WAPR 接入和双语网站源码。训练与渲染的阶段脚本见下方公开上游索引。</p>
 <div class="code-block" data-code-language="text"><div class="code-toolbar"><span class="code-label">TEXT</span></div><pre aria-label="text 代码" tabindex="0"><code class="language-text syntax-highlight">HccePose/                 RGB 推理、网络与 BOP 加载器
 s1_*.py ... s4_*.py       公开准备、训练与评测阶段
-Refinement/              WAPR 接入与可选 MegaPose 接口
-examples/inference/      predict_image.py、predict_wapr.py、postprocess_wapr.py
+Refinement/              共用 WAPR/MegaPose 接口与 RGB-D 读取
+s4_p3_*RGBD_wapr.py      WAPR 预测及自动评分筛选、NMS
+scripts/                 HF 下载与资源校验
 docs/zh/                 中文文档
 docs/en/                 英文文档
 docs/theme/              共享视觉主题
 docs/assets/             图片与展示素材
+docs/assets/figures/     论文、教程与效果图片
 pages/                   构建后的静态网站
-show_vis/                公开示例图片
 media/                   公开视频预览
+sample_data/images/      自带 RGB 输入图片
+sample_data/rgbd/        自带 RGB-D 帧与相机标定
+sample_data/videos/      自带输入视频
 tests/                   接口与文档检查
 </code></pre></div>
 <h2 id="zh-公开阶段脚本">公开阶段脚本</h2>
@@ -168,15 +172,19 @@ python<span class="w"> </span>-m<span class="w"> </span>http.server<span class="
 <p>This project contains application inference, the public WAPR adapter and bilingual website sources. Public upstream training and rendering stage scripts are indexed below.</p>
 <div class="code-block" data-code-language="text"><div class="code-toolbar"><span class="code-label">TEXT</span></div><pre aria-label="text code" tabindex="0"><code class="language-text syntax-highlight">HccePose/                 RGB inference, networks, BOP loader
 s1_*.py ... s4_*.py       Public preparation, training and evaluation stages
-Refinement/              WAPR adapter and optional MegaPose interface
-examples/inference/      predict_image.py, predict_wapr.py, postprocess_wapr.py
+Refinement/              Shared WAPR/MegaPose interfaces and RGB-D readers
+s4_p3_*RGBD_wapr.py      WAPR prediction with automatic score filtering and NMS
+scripts/                 HF downloads and resource validation
 docs/zh/                 Chinese documentation
 docs/en/                 English documentation
 docs/theme/              Shared visual theme
 docs/assets/             Figures and presentation assets
+docs/assets/figures/     Paper, tutorial and result figures
 pages/                   Generated static website
-show_vis/                Public example figures
 media/                   Public video preview
+sample_data/images/      Bundled RGB input images
+sample_data/rgbd/        Bundled RGB-D frames and calibration
+sample_data/videos/      Bundled input videos
 tests/                   API and documentation checks
 </code></pre></div>
 <h2 id="en-public-stage-scripts">Public stage scripts</h2>

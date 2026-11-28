@@ -89,19 +89,19 @@
       <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-从-cad-导出网格">从 CAD 导出网格</a></li><li class="outline-h2"><a href="#zh-将模型居中并设置物体-id">将模型居中并设置物体 ID</a></li><li class="outline-h2"><a href="#zh-用-kasal-标注旋转对称性">用 KASAL 标注旋转对称性</a></li><li class="outline-h2"><a href="#zh-生成-bop-模型元数据">生成 BOP 模型元数据</a></li></ul>
 <ul class="en"><li class="outline-h2"><a href="#en-export-a-mesh-from-cad">Export a mesh from CAD</a></li><li class="outline-h2"><a href="#en-center-the-mesh-and-assign-an-object-id">Center the mesh and assign an object ID</a></li><li class="outline-h2"><a href="#en-annotate-rotational-symmetry-with-kasal">Annotate rotational symmetry with KASAL</a></li><li class="outline-h2"><a href="#en-generate-bop-model-metadata">Generate BOP model metadata</a></li></ul></details>
       <article><div class="doc-language zh"><h1 id="zh-准备网格旋转对称信息和模型元数据">准备网格、旋转对称信息和模型元数据</h1>
-<p>本页使用<a href="https://github.com/WangYuLin-SEU/HCCEPose/tree/f75cc4d5db2fc298fc7b853f8c75273757872382" rel="noopener noreferrer">公开上游源码</a>中的准备、训练或评测脚本。请先按<a href="installation.html?lang=zh#zh-公开训练与渲染源码">安装说明</a>获取该版本，并在上游源码根目录执行本页命令；当前项目中的 <code>examples/inference/</code> 用于应用推理。</p>
+<p>本页使用本仓库根目录中的准备、训练或评测脚本。请按<a href="installation.html?lang=zh#zh-公开训练与渲染源码">安装说明</a>准备对应依赖，再从仓库根目录执行命令。应用推理使用根目录的 <code>s4_p3_*.py</code> 示例。</p>
 <p>从 CAD 模型到训练数据，先要定好物体的坐标系、尺度和编号。下面用 <a href="https://huggingface.co/datasets/SEU-WYL/HccePose/tree/4e482e540314622981ccd4fce5beddac7f9d3e1d/demo-bin-picking" rel="noopener noreferrer">Bin-Picking 示例物体</a>走一遍。后续脚本共用数据集的 <code>models/</code> 目录，并以毫米为模型坐标单位。</p>
 <h2 id="zh-从-cad-导出网格">从 CAD 导出网格</h2>
 <p>我们在 SolidWorks 中设计了示例零件，并导出为 <a href="https://huggingface.co/datasets/SEU-WYL/HccePose/blob/4e482e540314622981ccd4fce5beddac7f9d3e1d/raw-demo-models/multi-objs/board.STL" rel="noopener noreferrer">board.STL</a>。你可以从这个文件开始，也可以使用自己的模型。</p>
-<p><a aria-label="查看原图：物体三维网格设计" class="image-original" href="../assets/show_vis/Design-3DMesh.jpg" rel="noopener" target="_blank"><img alt="物体三维网格设计" decoding="async" loading="lazy" src="../assets/show_vis/Design-3DMesh.jpg" width="100%"/></a></p>
+<p><a aria-label="查看原图：物体三维网格设计" class="image-original" href="../assets/docs/assets/figures/Design-3DMesh.jpg" rel="noopener" target="_blank"><img alt="物体三维网格设计" decoding="async" loading="lazy" src="../assets/docs/assets/figures/Design-3DMesh.jpg" width="100%"/></a></p>
 <p>用 MeshLab 打开 STL，在 <strong>Vertex Color Filling</strong> 中为表面着色。</p>
-<p><a aria-label="查看原图：MeshLab 顶点着色" class="image-original" href="../assets/show_vis/color-filling.png" rel="noopener" target="_blank"><img alt="MeshLab 顶点着色" decoding="async" loading="lazy" src="../assets/show_vis/color-filling.png" width="100%"/></a>
-<a aria-label="查看原图：着色后的物体网格" class="image-original" href="../assets/show_vis/color-filling-2.png" rel="noopener" target="_blank"><img alt="着色后的物体网格" decoding="async" loading="lazy" src="../assets/show_vis/color-filling-2.png" width="100%"/></a></p>
+<p><a aria-label="查看原图：MeshLab 顶点着色" class="image-original" href="../assets/docs/assets/figures/color-filling.png" rel="noopener" target="_blank"><img alt="MeshLab 顶点着色" decoding="async" loading="lazy" src="../assets/docs/assets/figures/color-filling.png" width="100%"/></a>
+<a aria-label="查看原图：着色后的物体网格" class="image-original" href="../assets/docs/assets/figures/color-filling-2.png" rel="noopener" target="_blank"><img alt="着色后的物体网格" decoding="async" loading="lazy" src="../assets/docs/assets/figures/color-filling-2.png" width="100%"/></a></p>
 <p>导出为 ASCII PLY，并勾选顶点颜色和法向量。</p>
-<p><a aria-label="查看原图：导出含法向和颜色的 PLY 网格" class="image-original" href="../assets/show_vis/export-3d-mesh-ply.png" rel="noopener" target="_blank"><img alt="导出含法向和颜色的 PLY 网格" decoding="async" loading="lazy" src="../assets/show_vis/export-3d-mesh-ply.png" width="100%"/></a></p>
+<p><a aria-label="查看原图：导出含法向和颜色的 PLY 网格" class="image-original" href="../assets/docs/assets/figures/export-3d-mesh-ply.png" rel="noopener" target="_blank"><img alt="导出含法向和颜色的 PLY 网格" decoding="async" loading="lazy" src="../assets/docs/assets/figures/export-3d-mesh-ply.png" width="100%"/></a></p>
 <h2 id="zh-将模型居中并设置物体-id">将模型居中并设置物体 ID</h2>
 <p>导出网格时，原点可能落在零件中心之外。</p>
-<p><a aria-label="查看原图：中心对齐前的物体模型" class="image-original" href="../assets/show_vis/align-center.png" rel="noopener" target="_blank"><img alt="中心对齐前的物体模型" decoding="async" loading="lazy" src="../assets/show_vis/align-center.png" width="100%"/></a></p>
+<p><a aria-label="查看原图：中心对齐前的物体模型" class="image-original" href="../assets/docs/assets/figures/align-center.png" rel="noopener" target="_blank"><img alt="中心对齐前的物体模型" decoding="async" loading="lazy" src="../assets/docs/assets/figures/align-center.png" width="100%"/></a></p>
 <p><code>s1_p1_obj_rename_center.py</code> 使用 PyMeshLab。单独安装脚本使用的参考版本：</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">pymeshlab</span><span class="o">==</span><span class="m">2023</span>.12.post1
 </code></pre></div>
@@ -144,13 +144,13 @@
 <span class="n">app</span><span class="p">(</span><span class="n">mesh_path</span><span class="p">)</span>
 </code></pre></div>
 <p>KASAL 会读取该目录下的 PLY 和 OBJ 网格，并跳过已生成的 <code>_sym.ply</code> 可视化文件。</p>
-<p><a aria-label="查看原图：KASAL 旋转对称配置" class="image-original" href="../assets/show_vis/kasal-1.png" rel="noopener" target="_blank"><img alt="KASAL 旋转对称配置" decoding="async" loading="lazy" src="../assets/show_vis/kasal-1.png" width="100%"/></a></p>
+<p><a aria-label="查看原图：KASAL 旋转对称配置" class="image-original" href="../assets/docs/assets/figures/kasal-1.png" rel="noopener" target="_blank"><img alt="KASAL 旋转对称配置" decoding="async" loading="lazy" src="../assets/docs/assets/figures/kasal-1.png" width="100%"/></a></p>
 <ol>
 <li>在 <strong>Symmetry Type</strong> 中选择类型。对于 <em>n</em> 阶棱锥或棱柱对称，用 <strong>N (n-fold)</strong> 设置阶数。</li>
 <li>对具有纹理旋转对称性的物体，勾选 <strong>ADI-C</strong>。</li>
 <li>检查可视化中的对称轴是否与模型吻合。如果偏离，先复核对称类型，必要时用 <strong>axis xyz</strong> 手动拟合。</li>
 </ol>
-<p><a aria-label="查看原图：KASAL 对称轴可视化" class="image-original" href="../assets/show_vis/kasal-2.png" rel="noopener" target="_blank"><img alt="KASAL 对称轴可视化" decoding="async" loading="lazy" src="../assets/show_vis/kasal-2.png" width="100%"/></a></p>
+<p><a aria-label="查看原图：KASAL 对称轴可视化" class="image-original" href="../assets/docs/assets/figures/kasal-2.png" rel="noopener" target="_blank"><img alt="KASAL 对称轴可视化" decoding="async" loading="lazy" src="../assets/docs/assets/figures/kasal-2.png" width="100%"/></a></p>
 <p>点击 <strong>Cal Current Obj</strong> 计算当前物体的对称轴。以物体 1 为例，<code>obj_000001_sym_type.json</code> 保存对称信息，<code>obj_000001_sym.ply</code> 用于查看拟合结果。</p>
 <h2 id="zh-生成-bop-模型元数据">生成 BOP 模型元数据</h2>
 <p>将 <code>s1_p3_obj_infos.py</code> 中的 <code>dataset_path</code> 指向数据集并运行。脚本读取 <code>models/</code> 中的 BOP 网格，计算直径和包围盒，并将可用的旋转对称信息一起写入 <code>models_info.json</code>。后续<a href="rendering.html?lang=zh">渲染训练场景</a>和制作标签时，使用这一套模型和元数据。</p>
@@ -162,19 +162,19 @@
 <span class="w">      </span><span class="p">|</span>---<span class="w"> </span>obj_000015.ply
 </code></pre></div></div>
 <div class="doc-language en"><h1 id="en-prepare-meshes-symmetry-annotations-and-model-metadata">Prepare meshes, symmetry annotations and model metadata</h1>
-<p>This page uses preparation, training or evaluation scripts from the <a href="https://github.com/WangYuLin-SEU/HCCEPose/tree/f75cc4d5db2fc298fc7b853f8c75273757872382" rel="noopener noreferrer">public upstream source</a>. Obtain that revision as described in <a href="installation.html?lang=en#en-public-training-and-rendering-source">Installation</a>, and run these commands from its root. The current project’s <code>examples/inference/</code> provides application inference.</p>
+<p>This page uses preparation, training or evaluation scripts in this repository’s root. Prepare the dependencies described in <a href="installation.html?lang=en#en-public-training-and-rendering-source">Installation</a>, then run the commands from the repository root. Application inference examples use the root <code>s4_p3_*.py</code> scripts.</p>
 <p>Start by choosing a coordinate frame, scale and ID for each object. This example follows the <a href="https://huggingface.co/datasets/SEU-WYL/HccePose/tree/4e482e540314622981ccd4fce5beddac7f9d3e1d/demo-bin-picking" rel="noopener noreferrer">Bin-Picking part</a> from CAD to a training mesh. The rest of the pipeline reads meshes from the dataset’s <code>models/</code> directory and uses millimeters for model coordinates.</p>
 <h2 id="en-export-a-mesh-from-cad">Export a mesh from CAD</h2>
 <p>We designed the sample part in SolidWorks and exported it as <a href="https://huggingface.co/datasets/SEU-WYL/HccePose/blob/4e482e540314622981ccd4fce5beddac7f9d3e1d/raw-demo-models/multi-objs/board.STL" rel="noopener noreferrer">board.STL</a>. You can start with this file or use your own model.</p>
-<p><a aria-label="Open original image: Designing the object mesh" class="image-original" href="../assets/show_vis/Design-3DMesh.jpg" rel="noopener" target="_blank"><img alt="Designing the object mesh" decoding="async" loading="lazy" src="../assets/show_vis/Design-3DMesh.jpg" width="100%"/></a></p>
+<p><a aria-label="Open original image: Designing the object mesh" class="image-original" href="../assets/docs/assets/figures/Design-3DMesh.jpg" rel="noopener" target="_blank"><img alt="Designing the object mesh" decoding="async" loading="lazy" src="../assets/docs/assets/figures/Design-3DMesh.jpg" width="100%"/></a></p>
 <p>Open the STL in MeshLab and use <strong>Vertex Color Filling</strong> to color the surface.</p>
-<p><a aria-label="Open original image: MeshLab vertex color filling" class="image-original" href="../assets/show_vis/color-filling.png" rel="noopener" target="_blank"><img alt="MeshLab vertex color filling" decoding="async" loading="lazy" src="../assets/show_vis/color-filling.png" width="100%"/></a>
-<a aria-label="Open original image: Colored object mesh" class="image-original" href="../assets/show_vis/color-filling-2.png" rel="noopener" target="_blank"><img alt="Colored object mesh" decoding="async" loading="lazy" src="../assets/show_vis/color-filling-2.png" width="100%"/></a></p>
+<p><a aria-label="Open original image: MeshLab vertex color filling" class="image-original" href="../assets/docs/assets/figures/color-filling.png" rel="noopener" target="_blank"><img alt="MeshLab vertex color filling" decoding="async" loading="lazy" src="../assets/docs/assets/figures/color-filling.png" width="100%"/></a>
+<a aria-label="Open original image: Colored object mesh" class="image-original" href="../assets/docs/assets/figures/color-filling-2.png" rel="noopener" target="_blank"><img alt="Colored object mesh" decoding="async" loading="lazy" src="../assets/docs/assets/figures/color-filling-2.png" width="100%"/></a></p>
 <p>Export the mesh as an ASCII PLY with vertex colors and normals.</p>
-<p><a aria-label="Open original image: Exporting a PLY mesh with normals and colors" class="image-original" href="../assets/show_vis/export-3d-mesh-ply.png" rel="noopener" target="_blank"><img alt="Exporting a PLY mesh with normals and colors" decoding="async" loading="lazy" src="../assets/show_vis/export-3d-mesh-ply.png" width="100%"/></a></p>
+<p><a aria-label="Open original image: Exporting a PLY mesh with normals and colors" class="image-original" href="../assets/docs/assets/figures/export-3d-mesh-ply.png" rel="noopener" target="_blank"><img alt="Exporting a PLY mesh with normals and colors" decoding="async" loading="lazy" src="../assets/docs/assets/figures/export-3d-mesh-ply.png" width="100%"/></a></p>
 <h2 id="en-center-the-mesh-and-assign-an-object-id">Center the mesh and assign an object ID</h2>
 <p>The origin of an exported mesh may lie away from the center of the part.</p>
-<p><a aria-label="Open original image: Object mesh before centering" class="image-original" href="../assets/show_vis/align-center.png" rel="noopener" target="_blank"><img alt="Object mesh before centering" decoding="async" loading="lazy" src="../assets/show_vis/align-center.png" width="100%"/></a></p>
+<p><a aria-label="Open original image: Object mesh before centering" class="image-original" href="../assets/docs/assets/figures/align-center.png" rel="noopener" target="_blank"><img alt="Object mesh before centering" decoding="async" loading="lazy" src="../assets/docs/assets/figures/align-center.png" width="100%"/></a></p>
 <p>The centering script, <code>s1_p1_obj_rename_center.py</code>, uses PyMeshLab. Install the reference version separately:</p>
 <div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">pymeshlab</span><span class="o">==</span><span class="m">2023</span>.12.post1
 </code></pre></div>
@@ -217,13 +217,13 @@
 <span class="n">app</span><span class="p">(</span><span class="n">mesh_path</span><span class="p">)</span>
 </code></pre></div>
 <p>KASAL reads PLY and OBJ meshes under that directory and skips generated <code>_sym.ply</code> visualizations.</p>
-<p><a aria-label="Open original image: KASAL symmetry configuration" class="image-original" href="../assets/show_vis/kasal-1.png" rel="noopener" target="_blank"><img alt="KASAL symmetry configuration" decoding="async" loading="lazy" src="../assets/show_vis/kasal-1.png" width="100%"/></a></p>
+<p><a aria-label="Open original image: KASAL symmetry configuration" class="image-original" href="../assets/docs/assets/figures/kasal-1.png" rel="noopener" target="_blank"><img alt="KASAL symmetry configuration" decoding="async" loading="lazy" src="../assets/docs/assets/figures/kasal-1.png" width="100%"/></a></p>
 <ol>
 <li>Choose a <strong>Symmetry Type</strong>. For <em>n</em>-fold pyramidal or prismatic symmetry, set <strong>N (n-fold)</strong>.</li>
 <li>Enable <strong>ADI-C</strong> for objects with rotational texture symmetry.</li>
 <li>Compare the displayed axes with the mesh. If they do not line up, check the selected symmetry type and use <strong>axis xyz</strong> to fit the axes manually if needed.</li>
 </ol>
-<p><a aria-label="Open original image: KASAL symmetry axis visualization" class="image-original" href="../assets/show_vis/kasal-2.png" rel="noopener" target="_blank"><img alt="KASAL symmetry axis visualization" decoding="async" loading="lazy" src="../assets/show_vis/kasal-2.png" width="100%"/></a></p>
+<p><a aria-label="Open original image: KASAL symmetry axis visualization" class="image-original" href="../assets/docs/assets/figures/kasal-2.png" rel="noopener" target="_blank"><img alt="KASAL symmetry axis visualization" decoding="async" loading="lazy" src="../assets/docs/assets/figures/kasal-2.png" width="100%"/></a></p>
 <p>Choose <strong>Cal Current Obj</strong> to compute the axes. For object 1, <code>obj_000001_sym_type.json</code> stores the symmetry information and <code>obj_000001_sym.ply</code> shows the fitted result.</p>
 <h2 id="en-generate-bop-model-metadata">Generate BOP model metadata</h2>
 <p>Set <code>dataset_path</code> in <code>s1_p3_obj_infos.py</code> and run the script. It reads the BOP meshes in <code>models/</code>, calculates each object’s diameter and bounding box, and writes these along with any available symmetry information to <code>models_info.json</code>. Use the same meshes and metadata for <a href="rendering.html?lang=en">rendering the training scenes</a> and generating labels.</p>

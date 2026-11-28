@@ -86,37 +86,37 @@
     <main id="main-content" class="document" tabindex="-1">
       <div class="page-eyebrow"><span class="language-pair"><span class="zh" lang="zh-CN">使用案例</span><span class="en" lang="en">Examples</span></span></div>
       <nav class="pagination pagination-top" aria-label="上下页 / Previous and next pages"><a rel="prev" href="rgbd-wapr.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">WAPR 接入</span><span class="en" lang="en">WAPR integration</span></span></strong></a><a rel="next" href="rgbd-megapose.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">MegaPose 位姿精修</span><span class="en" lang="en">MegaPose refinement</span></span></strong></a></nav>
-      <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-准备同一帧与模型">准备同一帧与模型</a></li><li class="outline-h2"><a href="#zh-运行可选脚本">运行可选脚本</a></li><li class="outline-h2"><a href="#zh-两个不同的阈值">两个不同的阈值</a></li><li class="outline-h2"><a href="#zh-nms-比较什么">NMS 比较什么</a></li><li class="outline-h2"><a href="#zh-读取输出">读取输出</a></li><li class="outline-h2"><a href="#zh-与网站演示的关系">与网站演示的关系</a></li></ul>
-<ul class="en"><li class="outline-h2"><a href="#en-prepare-the-same-frame-and-models">Prepare the same frame and models</a></li><li class="outline-h2"><a href="#en-run-the-optional-script">Run the optional script</a></li><li class="outline-h2"><a href="#en-two-different-thresholds">Two different thresholds</a></li><li class="outline-h2"><a href="#en-what-the-nms-compares">What the NMS compares</a></li><li class="outline-h2"><a href="#en-read-the-output">Read the output</a></li><li class="outline-h2"><a href="#en-relation-to-the-website-example">Relation to the website example</a></li></ul></details>
+      <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-准备同一帧与模型">准备同一帧与模型</a></li><li class="outline-h2"><a href="#zh-预测并自动后处理">预测并自动后处理</a></li><li class="outline-h2"><a href="#zh-两个不同的阈值">两个不同的阈值</a></li><li class="outline-h2"><a href="#zh-nms-比较什么">NMS 比较什么</a></li><li class="outline-h2"><a href="#zh-读取输出">读取输出</a></li><li class="outline-h2"><a href="#zh-与网站演示的关系">与网站演示的关系</a></li></ul>
+<ul class="en"><li class="outline-h2"><a href="#en-prepare-the-same-frame-and-models">Prepare the same frame and models</a></li><li class="outline-h2"><a href="#en-run-prediction-with-automatic-postprocessing">Run prediction with automatic postprocessing</a></li><li class="outline-h2"><a href="#en-two-different-thresholds">Two different thresholds</a></li><li class="outline-h2"><a href="#en-what-the-nms-compares">What the NMS compares</a></li><li class="outline-h2"><a href="#en-read-the-output">Read the output</a></li><li class="outline-h2"><a href="#en-relation-to-the-website-example">Relation to the website example</a></li></ul></details>
       <article><div class="doc-language zh"><h1 id="zh-wapr-评分筛选与渲染掩码-nms">WAPR 评分筛选与渲染掩码 NMS</h1>
-<p><a href="rgbd-wapr.html?lang=zh">WAPR 推理示例</a>会保存各实例的估计位姿与评分。本教程提供可选的第二步：先按分数筛选，再调用<a href="https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/wapr/suppression.py" rel="noopener noreferrer">固定公开版 WAPR 的 NMS 实现</a>，移除投影高度重叠的位姿。不改变原适配器，也不重新运行位姿网络。</p>
+<p><a href="rgbd-wapr.html?lang=zh">WAPR 推理示例</a>保存各实例的估计位姿与评分后，自动执行分数筛选和<a href="https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/wapr/suppression.py" rel="noopener noreferrer">固定公开版 WAPR 的 NMS</a>。预测与后处理由同一个根目录脚本完成，不需要第二条命令。</p>
 <h2 id="zh-准备同一帧与模型">准备同一帧与模型</h2>
-<p>先运行 <code>examples/inference/predict_wapr.py</code>，保留其输出 <code>outputs/wapr.json</code>。后处理时使用同一张图像、原图内参和对应物体网格。每条记录须含 <code>object_id</code>、<code>instance_index</code>、<code>pose_4x4_m</code> 与 <code>score_6d</code>。</p>
+<p>运行 <code>s4_p3_test_mi10_bin_picking_RGBD_wapr.py</code> 后，原始预测保存在 <code>outputs/wapr.json</code>，自动后处理报告写入 <code>outputs/wapr_filtered.json</code>，两者使用同一张图像、原图内参和物体网格。原始记录含 <code>object_id</code>、<code>instance_index</code>、<code>pose_4x4_m</code> 与 <code>score_6d</code>。</p>
 <p>脚本从 <code>&lt;dataset_root&gt;/models/obj_XXXXXX.ply</code> 读取 BOP 网格。BOP 顶点使用毫米，<code>mesh_scale_to_m=1e-3</code> 将其换算为米；如果网格已经以米表示，将其设为 <code>1</code>。网格坐标与保存位姿须使用同一个原始物体坐标系，之后不要再将网格居中。</p>
-<p>分数筛选在 CPU 上执行。有记录通过门槛时，渲染掩码 NMS 需要<a href="installation.html?lang=zh#zh-可选-wapr">已安装 WAPR</a>的 CUDA 渲染器，并使用同一 Python 环境。脚本不会重新加载位姿网络权重。缺少网格或渲染器出错时会报错，不会悄悄退回未筛选结果。</p>
-<p>脚本可在公开源码中查看：<a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/main/examples/inference/postprocess_wapr.py" rel="noopener noreferrer">postprocess_wapr.py</a>。</p>
-<h2 id="zh-运行可选脚本">运行可选脚本</h2>
-<p><code>examples/inference/postprocess_wapr.py</code> 底部的可编辑参数对应<a href="assets.html?lang=zh#zh-下载一个-rgb-d-示例">资源页下载的 RGB-D 示例</a>。核对路径后，从项目根目录运行：</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>examples/inference/postprocess_wapr.py
+<p>分数筛选在 CPU 上执行。有记录通过门槛时，渲染掩码 NMS 需要<a href="installation.html?lang=zh#zh-可选-wapr">已安装 WAPR</a>的 CUDA 渲染器，并使用同一 Python 环境。自动后处理复用准备好的网格，不重跑位姿网络。缺少网格或渲染器出错时会报错，不会悄悄退回未筛选结果；NMS 失败时仍保留原始 JSON。</p>
+<p>脚本源码：<a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/main/s4_p3_test_mi10_bin_picking_RGBD_wapr.py" rel="noopener noreferrer">s4_p3_test_mi10_bin_picking_RGBD_wapr.py</a>。</p>
+<h2 id="zh-预测并自动后处理">预测并自动后处理</h2>
+<p>根目录脚本使用自带的 <code>sample_data/rgbd/000003_*</code> 输入及<a href="assets.html?lang=zh#zh-下载一个-rgb-d-示例">资源页准备的模型</a>。核对脚本中的路径和显式阈值后运行：</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash 代码" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>s4_p3_test_mi10_bin_picking_RGBD_wapr.py
 </code></pre></div>
-<p>原始 JSON 保持不变，结果单独写入 <code>outputs/wapr_filtered.json</code>。在 Python 应用中也可调用：</p>
-<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">examples.inference.postprocess_wapr</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span>
+<p><code>Tester.predict</code> 自动完成筛选与 NMS，根目录脚本只读取输入并保存返回结果。若之后只想用其他阈值比较已有原始文件、而不重新预测，可调用 Tester 的静态方法，无需构造 Tester 或加载模型权重：</p>
+<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python 代码" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">HccePose.tester</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tester</span>
 
 <span class="c1"># 路径与位姿必须对应同一帧。</span>
-<span class="n">report</span> <span class="o">=</span> <span class="n">main</span><span class="p">(</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">Tester</span><span class="o">.</span><span class="n">postprocess_saved_wapr</span><span class="p">(</span>
     <span class="s2">"data/demo-bin-picking"</span><span class="p">,</span>
     <span class="s2">"data/test_imgs_RGBD/000003_rgb.png"</span><span class="p">,</span>
     <span class="s2">"data/test_imgs_RGBD/000003_camera_matrix.json"</span><span class="p">,</span>
     <span class="s2">"outputs/wapr.json"</span><span class="p">,</span>
     <span class="s2">"outputs/wapr_filtered.json"</span><span class="p">,</span>
-    <span class="n">score_threshold</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
+    <span class="n">wbps_threshold</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
     <span class="n">nms_iou_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
     <span class="n">device</span><span class="o">=</span><span class="s2">"cuda:0"</span><span class="p">,</span>
     <span class="n">mesh_scale_to_m</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">retained</span> <span class="o">=</span> <span class="n">report</span><span class="p">[</span><span class="s2">"retained_records"</span><span class="p">]</span>
 </code></pre></div>
-<p>对于内存中的记录，也可调用 <code>filter_records(records, meshes_by_id, cam_K, image.shape, score_threshold, nms_iou_threshold, device)</code>。其中 <code>meshes_by_id</code> 将每个通过评分的 BOP 物体编号映射到其米制网格；记录格式与 <code>predict_wapr.py</code> 一致。</p>
+<p><code>Tester.postprocess_wapr(records, meshes_by_id, cam_K, image.shape, wbps_threshold, nms_iou_threshold, device)</code> 用于处理已有内存记录。<code>meshes_by_id</code> 将通过评分的 BOP 编号映射到米制网格。三种 WAPR 预测模式均在 Tester 内调用这个方法，入口脚本及 refinement group 不再保留筛选或 NMS 实现。</p>
 <h2 id="zh-两个不同的阈值">两个不同的阈值</h2>
 <div aria-label="横向滚动表格" class="table-scroll" role="region" tabindex="0"><table>
 <thead>
@@ -128,7 +128,7 @@
 </thead>
 <tbody>
 <tr>
-<td><code>score_threshold</code></td>
+<td>脚本中的 <code>score_threshold</code> / Tester 中的 <code>wbps_threshold</code></td>
 <td><code>0.75</code></td>
 <td>对返回的 <code>score_6d</code> 应用 WBPS 门槛，NMS 前先保留 <code>score_6d &gt;= 0.75</code> 的记录。这是应用参数，不是对所有物体都校准过的概率门槛；大于 1 的评分原样保留。</td>
 </tr>
@@ -140,6 +140,7 @@
 </tbody>
 </table></div>
 <p>IoU 示例值沿用<a href="https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/examples/10_robi_zigzag.py" rel="noopener noreferrer">公开 WAPR 示例</a>。两个值都作为脚本中的应用参数显式保留，不改变 WAPR 的科学默认值。应根据物体和相机调整。</p>
+<p><code>wapr_mode</code> 可选 <code>estimate</code>、<code>hybrid</code> 或 <code>refine</code>。默认共用相同数值门槛，但不同候选组可能产生不同 WBPS，不能认为门槛已在各模式间等价校准。定义见<a href="refinement-api.html?lang=zh">模式说明</a>。</p>
 <h2 id="zh-nms-比较什么">NMS 比较什么</h2>
 <p>对每个通过评分的位姿，WAPR 使用对应 CAD、估计的物体到相机变换及原图内参渲染物体剪影。NMS 比较的是这些随位姿变化的掩码，不只是原检测框或输入掩码。不同物体编号使用各自的网格，分组处理。</p>
 <p>公开贪心实现对同分项优先保留输入较早的记录；被抑制项不会继续抑制后续项。输出沿用原输入顺序，不按分数重新排序。投影掩码为空的结果也会被后端移除。</p>
@@ -176,37 +177,38 @@
 </tbody>
 </table></div>
 <p>筛选状态为 <code>kept</code>、<code>below_score_threshold</code> 或 <code>not_retained_by_mask_nms</code>。最后一种同时包含空投影和重叠抑制，不能直接解释为已确认的重复物体。跳过项不会被伪造为零分。</p>
+<p>推理报告另记录 <code>wapr_mode</code> 及 <code>skipped_instances</code>。<code>refine</code> 模式在后者列出 PnP 失败或无效的初值；这些未经估计的实例没有原始评分。重新处理原始文件只对已有记录执行筛选和 NMS，不会重建被跳过的实例，也不改变推理模式。</p>
 <h2 id="zh-与网站演示的关系">与网站演示的关系</h2>
 <p>三角块查看器展示的是已保存结果。本脚本根据传入的 JSON 和模型计算筛选结果，不改写查看器，保留数量由当前输入和阈值决定。通过评分或 NMS 也不等于真值确认；比较策略时请保留原始文件。</p></div>
 <div class="doc-language en"><h1 id="en-wapr-score-filtering-and-rendered-mask-nms">WAPR score filtering and rendered-mask NMS</h1>
-<p>The <a href="rgbd-wapr.html?lang=en">WAPR inference example</a> saves every estimated pose and score. This optional second step applies a score gate, then removes overlapping pose projections with the <a href="https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/wapr/suppression.py" rel="noopener noreferrer">fixed public WAPR NMS implementation</a>. It does not change the adapter or rerun the pose networks.</p>
+<p>The <a href="rgbd-wapr.html?lang=en">WAPR inference example</a> saves every estimated pose and score, then automatically applies a score gate and the <a href="https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/wapr/suppression.py" rel="noopener noreferrer">fixed public WAPR NMS implementation</a>. Prediction and postprocessing run from one root script; a second command is not required.</p>
 <h2 id="en-prepare-the-same-frame-and-models">Prepare the same frame and models</h2>
-<p>First run <code>examples/inference/predict_wapr.py</code> and keep its <code>outputs/wapr.json</code>. Supply the same image, original-image intrinsics and object meshes when postprocessing. The JSON must contain <code>object_id</code>, <code>instance_index</code>, <code>pose_4x4_m</code> and <code>score_6d</code> for each input instance.</p>
+<p>Run <code>s4_p3_test_mi10_bin_picking_RGBD_wapr.py</code>. It keeps raw predictions in <code>outputs/wapr.json</code> and writes the automatic postprocessing report to <code>outputs/wapr_filtered.json</code>, using the same image, original-image intrinsics and object meshes. Raw records contain <code>object_id</code>, <code>instance_index</code>, <code>pose_4x4_m</code> and <code>score_6d</code>.</p>
 <p>The script reads BOP meshes from <code>&lt;dataset_root&gt;/models/obj_XXXXXX.ply</code>. BOP vertices use millimeters, so <code>mesh_scale_to_m=1e-3</code> converts them to meters. Set it to <code>1</code> for meshes already in meters. Mesh coordinates and the saved pose must refer to the same original object frame; do not recenter the mesh afterward.</p>
-<p>The score gate runs on CPU. When any record passes it, rendered-mask NMS requires the CUDA renderer from the <a href="installation.html?lang=en#en-optional-wapr">WAPR installation</a>, in the same Python environment. No pose-network weights are loaded again by this script. Missing meshes or renderer failures raise errors rather than silently returning an unfiltered list.</p>
-<p>The script is available in the public source: <a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/main/examples/inference/postprocess_wapr.py" rel="noopener noreferrer">postprocess_wapr.py</a>.</p>
-<h2 id="en-run-the-optional-script">Run the optional script</h2>
-<p>The editable values at the bottom of <code>examples/inference/postprocess_wapr.py</code> use the <a href="assets.html?lang=en#en-download-one-rgb-d-example">downloaded RGB-D example</a>. Check the paths, then run from the project root:</p>
-<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>examples/inference/postprocess_wapr.py
+<p>The score gate runs on CPU. When any record passes it, rendered-mask NMS requires the CUDA renderer from the <a href="installation.html?lang=en#en-optional-wapr">WAPR installation</a>, in the same Python environment. The integrated postprocessing stage reuses the prepared meshes without running the pose networks again. Missing meshes or renderer failures raise errors rather than silently returning an unfiltered list; raw JSON remains available if NMS fails.</p>
+<p>Source: <a href="https://github.com/WangYuLin-SEU/HCCEPose/blob/main/s4_p3_test_mi10_bin_picking_RGBD_wapr.py" rel="noopener noreferrer">s4_p3_test_mi10_bin_picking_RGBD_wapr.py</a>.</p>
+<h2 id="en-run-prediction-with-automatic-postprocessing">Run prediction with automatic postprocessing</h2>
+<p>The root script uses bundled <code>sample_data/rgbd/000003_*</code> inputs and the models prepared on the <a href="assets.html?lang=en#en-download-one-rgb-d-example">resource page</a>. Check its paths and editable thresholds, then run:</p>
+<div class="code-block" data-code-language="bash"><div class="code-toolbar"><span class="code-label">BASH</span></div><pre aria-label="bash code" tabindex="0"><code class="language-bash syntax-highlight">python<span class="w"> </span>s4_p3_test_mi10_bin_picking_RGBD_wapr.py
 </code></pre></div>
-<p>The raw JSON remains unchanged. The result is written separately to <code>outputs/wapr_filtered.json</code>. For Python applications:</p>
-<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">examples.inference.postprocess_wapr</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span>
+<p><code>Tester.predict</code> completes filtering and NMS automatically; the root script only reads inputs and saves the returned results. To compare another threshold on an existing raw file without rerunning prediction, use Tester's static method, without constructing a Tester or loading model weights:</p>
+<div class="code-block" data-code-language="python"><div class="code-toolbar"><span class="code-label">PYTHON</span></div><pre aria-label="python code" tabindex="0"><code class="language-python syntax-highlight"><span class="kn">from</span><span class="w"> </span><span class="nn">HccePose.tester</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tester</span>
 
 <span class="c1"># These paths and poses must belong to the same frame.</span>
-<span class="n">report</span> <span class="o">=</span> <span class="n">main</span><span class="p">(</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">Tester</span><span class="o">.</span><span class="n">postprocess_saved_wapr</span><span class="p">(</span>
     <span class="s2">"data/demo-bin-picking"</span><span class="p">,</span>
     <span class="s2">"data/test_imgs_RGBD/000003_rgb.png"</span><span class="p">,</span>
     <span class="s2">"data/test_imgs_RGBD/000003_camera_matrix.json"</span><span class="p">,</span>
     <span class="s2">"outputs/wapr.json"</span><span class="p">,</span>
     <span class="s2">"outputs/wapr_filtered.json"</span><span class="p">,</span>
-    <span class="n">score_threshold</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
+    <span class="n">wbps_threshold</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
     <span class="n">nms_iou_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
     <span class="n">device</span><span class="o">=</span><span class="s2">"cuda:0"</span><span class="p">,</span>
     <span class="n">mesh_scale_to_m</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">retained</span> <span class="o">=</span> <span class="n">report</span><span class="p">[</span><span class="s2">"retained_records"</span><span class="p">]</span>
 </code></pre></div>
-<p>You can also call <code>filter_records(records, meshes_by_id, cam_K, image.shape, score_threshold, nms_iou_threshold, device)</code> on in-memory records. <code>meshes_by_id</code> maps each qualifying BOP object ID to its meter mesh. Records keep the same schema as <code>predict_wapr.py</code>.</p>
+<p><code>Tester.postprocess_wapr(records, meshes_by_id, cam_K, image.shape, wbps_threshold, nms_iou_threshold, device)</code> handles existing in-memory records. <code>meshes_by_id</code> maps each qualifying BOP ID to its meter mesh. All three WAPR prediction modes use this same method inside <code>Tester</code>; no filtering or NMS implementation is kept in the entry script or refinement group.</p>
 <h2 id="en-two-different-thresholds">Two different thresholds</h2>
 <div aria-label="Horizontally scrollable table" class="table-scroll" role="region" tabindex="0"><table>
 <thead>
@@ -218,7 +220,7 @@
 </thead>
 <tbody>
 <tr>
-<td><code>score_threshold</code></td>
+<td><code>score_threshold</code> in the script / <code>wbps_threshold</code> in Tester</td>
 <td><code>0.75</code></td>
 <td>Apply the WBPS score gate to the returned <code>score_6d</code>: keep <code>score_6d &gt;= 0.75</code> before NMS. This is an application choice, not a probability cutoff calibrated for every object. Scores above 1 are preserved.</td>
 </tr>
@@ -230,6 +232,7 @@
 </tbody>
 </table></div>
 <p>The IoU value follows the <a href="https://github.com/WangYuLin-SEU/WAPR/blob/4e591be318a828c91980c58ef8bbdc34e6599881/examples/10_robi_zigzag.py" rel="noopener noreferrer">public WAPR example</a>. Both values are visible script variables for the application; they do not change WAPR's scientific defaults. Tune them for your objects and camera.</p>
+<p><code>wapr_mode</code> selects <code>estimate</code>, <code>hybrid</code> or <code>refine</code>. The same numeric thresholds apply by default, but different candidate groups can produce different WBPS values; the gate is not calibrated equally across modes. See <a href="refinement-api.html?lang=en">the mode definitions</a>.</p>
 <h2 id="en-what-the-nms-compares">What the NMS compares</h2>
 <p>For each score-qualified pose, WAPR renders that object's CAD silhouette using its estimated object-to-camera transform and the original image intrinsics. NMS compares these pose-dependent masks, not just the original detector boxes or input masks. Different object IDs use their own meshes and are processed separately.</p>
 <p>The public greedy implementation gives earlier input rows priority when scores tie. A suppressed row does not suppress later rows. Output records preserve their original input order rather than being reordered by score. Empty projected masks are also removed by the backend.</p>
@@ -266,6 +269,7 @@
 </tbody>
 </table></div>
 <p>A decision has status <code>kept</code>, <code>below_score_threshold</code> or <code>not_retained_by_mask_nms</code>. The last status includes empty projections as well as overlap suppression, so it is not automatically a confirmed duplicate. No skipped item is assigned a fake zero score.</p>
+<p>The inference report also records <code>wapr_mode</code> and <code>skipped_instances</code>. In <code>refine</code>, the latter lists PnP failures or invalid seeds; these unestimated instances have no raw score. Reprocessing an existing raw file applies only filtering and NMS to the available records; it does not reconstruct skipped instances or change inference mode.</p>
 <h2 id="en-relation-to-the-website-example">Relation to the website example</h2>
 <p>The triangular-part viewer displays saved results. This script computes selection from the supplied JSON and models; it does not rewrite the viewer. The retained count depends on the current inputs and thresholds. Passing a score gate or NMS is also not ground-truth confirmation. Keep the raw file when comparing policies.</p></div></article>
       <nav class="pagination pagination-bottom" aria-label="上下页 / Previous and next pages"><a rel="prev" href="rgbd-wapr.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">WAPR 接入</span><span class="en" lang="en">WAPR integration</span></span></strong></a><a rel="next" href="rgbd-megapose.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">MegaPose 位姿精修</span><span class="en" lang="en">MegaPose refinement</span></span></strong></a></nav>
