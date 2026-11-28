@@ -86,8 +86,8 @@
     <main id="main-content" class="document" tabindex="-1">
       <div class="page-eyebrow"><span class="language-pair"><span class="zh" lang="zh-CN">快速入门</span><span class="en" lang="en">Start here</span></span></div>
       <nav class="pagination pagination-top" aria-label="上下页 / Previous and next pages"><a rel="prev" href="assets.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">模型与输入</span><span class="en" lang="en">Models and inputs</span></span></strong></a><a rel="next" href="troubleshooting.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">常见问题</span><span class="en" lang="en">Troubleshooting</span></span></strong></a></nav>
-      <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-rgb-示例">RGB 示例</a></li></ul>
-<ul class="en"><li class="outline-h2"><a href="#en-rgb-example">RGB example</a></li></ul></details>
+      <details class="section-outline"><summary><span class="language-pair"><span class="zh" lang="zh-CN">本页目录</span><span class="en" lang="en">On this page</span></span></summary><ul class="zh"><li class="outline-h2"><a href="#zh-rgb-示例">RGB 示例</a></li><li class="outline-h2"><a href="#zh-查看效果">查看效果</a></li></ul>
+<ul class="en"><li class="outline-h2"><a href="#en-rgb-example">RGB example</a></li><li class="outline-h2"><a href="#en-example-result">Example result</a></li></ul></details>
       <article><div class="doc-language zh"><h1 id="zh-第一次预测">第一次预测</h1>
 <p>在项目根目录操作。先完成<a href="installation.html?lang=zh">环境安装</a>和<a href="assets.html?lang=zh">资源准备</a>。</p>
 <h2 id="zh-rgb-示例">RGB 示例</h2>
@@ -106,7 +106,13 @@
 <span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">(</span><span class="n">bop_dataset</span><span class="p">(</span><span class="s2">"data/demo-bin-picking"</span><span class="p">),</span> <span class="n">hccepose_vis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">tester</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">camera</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </code></pre></div>
-<p>这一步需要匹配的权重与支持 CUDA 的 GPU 环境。</p></div>
+<p>这一步需要匹配的权重与支持 CUDA 的 GPU 环境。</p>
+<h2 id="zh-查看效果">查看效果</h2>
+<figure>
+<a class="image-original" href="../assets/docs/assets/figures/quickstart-rgb-result.png" rel="noopener" target="_blank"><img alt="000003 帧：左侧为彩色原图，右侧为估计位姿的三维包围盒投影" decoding="async" height="400" loading="lazy" src="../assets/docs/assets/figures/quickstart-rgb-result.png" width="1280"/></a>
+<figcaption><code>000003</code> 帧：左侧为彩色原图，右侧为按估计位姿投影到同一图像上的三维包围盒。不同颜色用于区分实例。</figcaption>
+</figure>
+<p>图中展示的是上面 RGB + PnP 调用的结果。保存可视化图像及查看掩码、表面坐标的方法，见 <a href="rgb-inference.html?lang=zh#zh-查看预测内容">RGB 图片推理</a>。</p></div>
 <div class="doc-language en"><h1 id="en-your-first-prediction">Your first prediction</h1>
 <p>Work from the project root. Complete <a href="installation.html?lang=en">installation</a> and <a href="assets.html?lang=en">resource preparation</a> first.</p>
 <h2 id="en-rgb-example">RGB example</h2>
@@ -125,7 +131,13 @@
 <span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">(</span><span class="n">bop_dataset</span><span class="p">(</span><span class="s2">"data/demo-bin-picking"</span><span class="p">),</span> <span class="n">hccepose_vis</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">tester</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">camera</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </code></pre></div>
-<p>This step requires matching weights and a CUDA-capable GPU environment.</p></div></article>
+<p>This step requires matching weights and a CUDA-capable GPU environment.</p>
+<h2 id="en-example-result">Example result</h2>
+<figure>
+<a class="image-original" href="../assets/docs/assets/figures/quickstart-rgb-result.png" rel="noopener" target="_blank"><img alt="Frame 000003: input RGB image on the left and estimated 3D bounding-box projections on the right" decoding="async" height="400" loading="lazy" src="../assets/docs/assets/figures/quickstart-rgb-result.png" width="1280"/></a>
+<figcaption>Frame <code>000003</code>: RGB input on the left; estimated 3D bounding boxes projected onto the same image on the right. Colors distinguish instances.</figcaption>
+</figure>
+<p>The preview uses the RGB + PnP prediction above. See <a href="rgb-inference.html?lang=en#en-inspect-the-predictions">RGB image inference</a> for saving visualizations and inspecting masks and surface coordinates.</p></div></article>
       <nav class="pagination pagination-bottom" aria-label="上下页 / Previous and next pages"><a rel="prev" href="assets.html"><small><span aria-hidden="true">←</span> <span class="language-pair"><span class="zh" lang="zh-CN">上一页</span><span class="en" lang="en">Previous</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">模型与输入</span><span class="en" lang="en">Models and inputs</span></span></strong></a><a rel="next" href="troubleshooting.html"><small><span aria-hidden="true">→</span> <span class="language-pair"><span class="zh" lang="zh-CN">下一页</span><span class="en" lang="en">Next</span></span></small><strong><span class="language-pair"><span class="zh" lang="zh-CN">常见问题</span><span class="en" lang="en">Troubleshooting</span></span></strong></a></nav>
       <footer class="page-footer"><span>HCCEPose</span><a href="https://wangyulin-seu.github.io/?lang=en" data-project-directory=""><span class="language-pair"><span class="zh" lang="zh-CN">全部项目</span><span class="en" lang="en">All projects</span></span></a><span class="language-pair"><span class="zh" lang="zh-CN">从 CAD 模型到 6D 位姿</span><span class="en" lang="en">From CAD models to 6D poses</span></span></footer>
     </main>
